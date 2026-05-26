@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>Registry - Dockhand</title>
+	<title>镜像仓库 - Dockhand</title>
 </svelte:head>
 
 <script lang="ts">
@@ -486,11 +486,11 @@
 
 <div class="h-full flex flex-col gap-3 overflow-hidden">
 	<div class="shrink-0 flex flex-wrap justify-between items-center gap-3 min-h-8">
-		<PageHeader icon={Download} title="Registry" showConnection={false} />
+		<PageHeader icon={Download} title="镜像仓库" showConnection={false} />
 		{#if $canAccess('registries', 'edit')}
 		<a href="/settings?tab=registries" class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs">
 			<Settings2 class="w-4 h-4" />
-			Manage registries
+			管理镜像仓库
 		</a>
 		{/if}
 	</div>
@@ -505,9 +505,9 @@
 				{:else}
 					<Server class="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
 				{/if}
-				<span class="truncate">{selected ? selected.name : 'Select registry'}</span>
+				<span class="truncate">{selected ? selected.name : '选择镜像仓库'}</span>
 				{#if selected?.hasCredentials}
-					<Badge variant="outline" class="ml-1.5 text-xs shrink-0">auth</Badge>
+					<Badge variant="outline" class="ml-1.5 text-xs shrink-0">认证</Badge>
 				{/if}
 			</Select.Trigger>
 			<Select.Content>
@@ -520,7 +520,7 @@
 						{/if}
 						{registry.name}
 						{#if registry.hasCredentials}
-							<Badge variant="outline" class="ml-2 text-xs">auth</Badge>
+							<Badge variant="outline" class="ml-2 text-xs">认证</Badge>
 						{/if}
 					</Select.Item>
 				{/each}
@@ -530,7 +530,7 @@
 			<Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
 			<Input
 				type="text"
-				placeholder={selectedRegistry ? `Search ${selectedRegistry.name} for images...` : 'Search for images...'}
+				placeholder={selectedRegistry ? `搜索 ${selectedRegistry.name} 中的镜像...` : '搜索镜像...'}
 				bind:value={searchTerm}
 				onkeydown={handleKeydown}
 				class="pl-10"
@@ -542,7 +542,7 @@
 			{:else}
 				<Search class="w-4 h-4" />
 			{/if}
-			Search
+			搜索
 		</Button>
 		{#if supportsBrowsing()}
 			<Button variant="outline" onclick={() => browse()} disabled={loading || browsing}>
@@ -551,24 +551,24 @@
 				{:else}
 					<List class="w-4 h-4" />
 				{/if}
-				Browse
+				浏览
 			</Button>
 		{/if}
 	</div>
 
 	<!-- Results -->
 	{#if loading || browsing}
-		<p class="text-muted-foreground text-sm">{browsing ? 'Loading catalog...' : 'Searching...'}</p>
+		<p class="text-muted-foreground text-sm">{browsing ? '加载目录中...' : '搜索中...'}</p>
 	{:else if errorMessage}
 		<p class="text-red-600 dark:text-red-400 text-sm">{errorMessage}</p>
 	{:else if searched && results.length === 0}
 		<div class="text-sm">
 			<p class="text-muted-foreground">
-				{browseMode ? 'No images found in this registry' : `No images found for "${searchTerm}"`}
+				{browseMode ? '此镜像仓库中未找到镜像' : `未找到 "${searchTerm}" 的镜像`}
 			</p>
 			{#if !browseMode && supportsBrowsing()}
 				<p class="text-muted-foreground mt-2">
-					Tip: Large registries don't support search. Try <button class="text-primary underline" onclick={() => browse()}>Browse</button> and use the filter to find images.
+					提示：大型镜像仓库不支持搜索。尝试 <button class="text-primary underline" onclick={() => browse()}>浏览</button> 并使用过滤器查找镜像。
 				</p>
 			{/if}
 		</div>
@@ -580,15 +580,15 @@
 					<Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
 					<Input
 						type="text"
-						placeholder="Filter results..."
+						placeholder="过滤结果..."
 						bind:value={browseFilter}
 						class="h-8 pl-8 text-xs"
 					/>
 				</div>
 				<span class="text-muted-foreground text-xs">
 					{filteredResults.length === results.length
-						? `${results.length} images`
-						: `${filteredResults.length} of ${results.length} images`}
+						? `${results.length} 个镜像`
+						: `${filteredResults.length} / ${results.length} 个镜像`}
 				</span>
 			</div>
 		{/if}
@@ -599,11 +599,11 @@
 			<table class="w-full text-sm">
 				<thead class="bg-muted sticky top-0 z-10">
 					<tr class="border-b">
-						<th class="text-left py-1.5 px-2 font-medium">Name</th>
+						<th class="text-left py-1.5 px-2 font-medium">名称</th>
 						{#if !browseMode}
-							<th class="text-left py-1.5 px-2 font-medium">Description</th>
-							<th class="text-center py-1.5 px-2 font-medium w-16">Stars</th>
-							<th class="text-center py-1.5 px-2 font-medium w-20">Type</th>
+							<th class="text-left py-1.5 px-2 font-medium">描述</th>
+							<th class="text-center py-1.5 px-2 font-medium w-16">星标</th>
+							<th class="text-center py-1.5 px-2 font-medium w-20">类型</th>
 						{/if}
 					</tr>
 				</thead>
@@ -640,9 +640,9 @@
 								</td>
 								<td class="py-1.5 px-2 text-center">
 									{#if result.is_official}
-										<span class={getTypeClasses('official')}>Official</span>
+										<span class={getTypeClasses('official')}>官方</span>
 									{:else if result.is_automated}
-										<span class={getTypeClasses('automated')}>Auto</span>
+										<span class={getTypeClasses('automated')}>自动</span>
 									{:else}
 										<span class="text-muted-foreground text-xs">-</span>
 									{/if}
@@ -656,7 +656,7 @@
 									{#if expandState?.loading}
 										<div class="flex items-center gap-2 text-xs text-muted-foreground py-2">
 											<Loader2 class="w-3.5 h-3.5 animate-spin" />
-											<span>Loading tags...</span>
+											<span>加载标签中...</span>
 										</div>
 									{:else if expandState?.error}
 										<div class="text-xs text-red-500 py-2">
@@ -667,10 +667,10 @@
 											<table class="text-xs">
 												<thead class="text-muted-foreground sticky top-0 bg-background z-10">
 													<tr>
-														<th class="text-left py-1 px-2 pr-4 font-medium">Tag</th>
-														<th class="text-left py-1 px-2 pr-4 font-medium">Size</th>
-														<th class="text-left py-1 px-2 pr-4 font-medium">Modified</th>
-														<th class="text-left py-1 px-2 font-medium">Actions</th>
+														<th class="text-left py-1 px-2 pr-4 font-medium">标签</th>
+														<th class="text-left py-1 px-2 pr-4 font-medium">大小</th>
+														<th class="text-left py-1 px-2 pr-4 font-medium">修改时间</th>
+														<th class="text-left py-1 px-2 font-medium">操作</th>
 													</tr>
 												</thead>
 												<tbody>
@@ -692,15 +692,15 @@
 																<div class="flex items-center gap-1">
 																	<button
 																		onclick={() => openPullModal(result.name, tag.name)}
-																		title={envHasScanning ? "Pull and scan this tag" : "Pull this tag"}
+																		title={envHasScanning ? "拉取并扫描此标签" : "拉取此标签"}
 																		class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-muted transition-colors whitespace-nowrap"
 																	>
 																		<Download class="w-3 h-3 text-muted-foreground" />
-																		<span class="text-muted-foreground">{envHasScanning ? 'Pull & scan' : 'Pull'}</span>
+																		<span class="text-muted-foreground">{envHasScanning ? '拉取并扫描' : '拉取'}</span>
 																	</button>
 																	<button
 																		onclick={() => openRunModal(result.name, tag.name)}
-																		title="Run container with this tag"
+																		title="使用此标签运行容器"
 																		class="p-1 rounded hover:bg-muted transition-colors"
 																	>
 																		<Play class="w-3 h-3 text-muted-foreground hover:text-foreground" />
@@ -708,7 +708,7 @@
 																	{#if pushableRegistries.length > 0}
 																		<button
 																			onclick={() => openCopyModal(result.name, tag.name)}
-																			title="Copy to another registry"
+																			title="复制到另一个镜像仓库"
 																			class="p-1 rounded hover:bg-muted transition-colors"
 																		>
 																			<Copy class="w-3 h-3 text-muted-foreground hover:text-foreground" />
@@ -717,15 +717,15 @@
 																	{#if supportsBrowsing()}
 																		{@const deleteKey = `${result.name}:${tag.name}`}
 																		<ConfirmPopover
-																			title="Delete tag"
-																			description="Are you sure you want to delete {result.name}:{tag.name}? This cannot be undone."
-																			confirmText="Delete"
+																			title="删除标签"
+																			description="确定要删除 {result.name}:{tag.name} 吗？此操作无法撤销。"
+																			confirmText="删除"
 																			open={confirmDeleteKey === deleteKey}
 																			onConfirm={() => deleteTag(result.name, tag.name)}
 																			onOpenChange={(open) => confirmDeleteKey = open ? deleteKey : null}
 																		>
 																			<button
-																				title="Delete this tag"
+																				title="删除此标签"
 																				class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
 																				disabled={deleting}
 																			>
@@ -743,19 +743,19 @@
 											{#if expandState.loadingMore}
 												<div class="flex items-center justify-center py-2 text-xs text-muted-foreground">
 													<Loader2 class="w-3 h-3 animate-spin mr-2" />
-													Loading more...
+													加载更多...
 												</div>
 											{/if}
 										</div>
 										<!-- Tags count -->
 										{#if expandState.total > 0}
 											<div class="text-xs text-muted-foreground pt-1">
-												{expandState.tags.length} of {expandState.total} tags loaded
+												已加载 {expandState.tags.length} / {expandState.total} 个标签
 											</div>
 										{/if}
 									{:else}
 										<div class="text-xs text-muted-foreground py-2">
-											No tags found
+											未找到标签
 										</div>
 									{/if}
 								</td>
@@ -776,9 +776,9 @@
 				>
 					{#if loadingMore}
 						<Loader2 class="w-4 h-4 mr-2 animate-spin" />
-						Loading...
+						加载中...
 					{:else}
-						Load more images
+						加载更多镜像
 					{/if}
 				</Button>
 			</div>
@@ -788,9 +788,9 @@
 			<Download class="w-12 h-12 mx-auto mb-4 opacity-50" />
 			<p class="text-sm">
 				{#if supportsBrowsing()}
-					Search or browse {selectedRegistry?.name || 'a registry'} to find images
+					搜索或浏览 {selectedRegistry?.name || '镜像仓库'} 以查找镜像
 				{:else}
-					Search {selectedRegistry?.name || 'a registry'} to find and pull images
+					搜索 {selectedRegistry?.name || '镜像仓库'} 以查找并拉取镜像
 				{/if}
 			</p>
 		</div>

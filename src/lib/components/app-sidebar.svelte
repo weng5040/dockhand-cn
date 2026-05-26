@@ -93,19 +93,19 @@
 	}
 
 	const menuItems: readonly MenuItem[] = [
-		{ href: '/', Icon: LayoutDashboard, label: 'Dashboard', permission: 'always' },
-		{ href: '/containers', Icon: Box, label: 'Containers', permission: 'containers' },
-		{ href: '/logs', Icon: ScrollText, label: 'Logs', permission: 'containers' },
-		{ href: '/terminal', Icon: Terminal, label: 'Shell', permission: 'containers' },
-		{ href: '/stacks', Icon: Layers, label: 'Stacks', permission: 'stacks' },
-		{ href: '/images', Icon: Images, label: 'Images', permission: 'images' },
-		{ href: '/volumes', Icon: HardDrive, label: 'Volumes', permission: 'volumes' },
-		{ href: '/networks', Icon: Network, label: 'Networks', permission: 'networks' },
-		{ href: '/registry', Icon: Download, label: 'Registry', permission: 'registries' },
-		{ href: '/activity', Icon: Activity, label: 'Activity', permission: 'activity' },
-		{ href: '/schedules', Icon: Timer, label: 'Schedules', permission: 'schedules' },
-		{ href: '/audit', Icon: ClipboardList, label: 'Audit log', permission: 'audit_logs', enterpriseOnly: true },
-		{ href: '/settings', Icon: Settings, label: 'Settings', permission: 'settings' }
+		{ href: '/', Icon: LayoutDashboard, label: '仪表盘', permission: 'always' },
+		{ href: '/containers', Icon: Box, label: '容器', permission: 'containers' },
+		{ href: '/logs', Icon: ScrollText, label: '日志', permission: 'containers' },
+		{ href: '/terminal', Icon: Terminal, label: '终端', permission: 'containers' },
+		{ href: '/stacks', Icon: Layers, label: '应用栈', permission: 'stacks' },
+		{ href: '/images', Icon: Images, label: '镜像', permission: 'images' },
+		{ href: '/volumes', Icon: HardDrive, label: '数据卷', permission: 'volumes' },
+		{ href: '/networks', Icon: Network, label: '网络', permission: 'networks' },
+		{ href: '/registry', Icon: Download, label: '镜像仓库', permission: 'registries' },
+		{ href: '/activity', Icon: Activity, label: '活动', permission: 'activity' },
+		{ href: '/schedules', Icon: Timer, label: '定时任务', permission: 'schedules' },
+		{ href: '/audit', Icon: ClipboardList, label: '审计日志', permission: 'audit_logs', enterpriseOnly: true },
+		{ href: '/settings', Icon: Settings, label: '设置', permission: 'settings' }
 	] as const;
 </script>
 
@@ -124,8 +124,8 @@
 				type="button"
 				onclick={() => sidebar.toggle()}
 				class="absolute right-1 p-1.5 rounded-md hover:bg-sidebar-accent text-gray-300 hover:text-gray-400 transition-colors"
-				title="Collapse sidebar"
-				aria-label="Collapse sidebar"
+				title="折叠侧边栏"
+				aria-label="折叠侧边栏"
 			>
 				<PanelLeftClose class="w-4 h-4" aria-hidden="true" />
 			</button>
@@ -135,8 +135,8 @@
 			type="button"
 			onclick={() => sidebar.toggle()}
 			class="hidden group-data-[state=collapsed]:flex p-1.5 rounded-md hover:bg-sidebar-accent text-muted-foreground hover:text-foreground transition-colors"
-			title="Expand sidebar"
-			aria-label="Expand sidebar"
+			title="展开侧边栏"
+			aria-label="展开侧边栏"
 		>
 			<PanelLeft class="w-4 h-4" aria-hidden="true" />
 		</button>
@@ -187,7 +187,7 @@
 						href="/profile"
 						onclick={() => sidebar.setOpenMobile(false)}
 						class="flex items-center gap-2 px-2 py-1.5 group-data-[state=collapsed]:px-1 group-data-[state=collapsed]:py-1 rounded-md hover:bg-sidebar-accent transition-colors group-data-[state=collapsed]:justify-center"
-						title="View profile"
+						title="查看个人资料"
 					>
 						<Avatar.Root class="w-8 h-8 group-data-[state=collapsed]:w-6 group-data-[state=collapsed]:h-6 shrink-0 transition-all">
 							<Avatar.Image src={$authStore.user.avatar} alt={$authStore.user.username} />
@@ -197,7 +197,7 @@
 						</Avatar.Root>
 						<div class="flex flex-col min-w-0 group-data-[state=collapsed]:hidden">
 							<span class="text-sm font-medium truncate">{$authStore.user.displayName || $authStore.user.username}</span>
-							<span class="text-xs text-muted-foreground truncate">{$authStore.user.isAdmin ? 'Admin' : 'User'}</span>
+							<span class="text-xs text-muted-foreground truncate">{$authStore.user.isAdmin ? '管理员' : '用户'}</span>
 						</div>
 					</a>
 				</Sidebar.MenuItem>
@@ -206,10 +206,10 @@
 						type="button"
 						onclick={handleLogout}
 						class="flex items-center gap-2 w-full px-2 py-1.5 group-data-[state=collapsed]:px-1 group-data-[state=collapsed]:py-1 text-sm text-muted-foreground hover:text-foreground hover:bg-sidebar-accent rounded-md transition-colors group-data-[state=collapsed]:justify-center"
-						title="Sign out"
+						title="退出登录"
 					>
 						<LogOut class="w-4 h-4 shrink-0 group-data-[state=collapsed]:w-3.5 group-data-[state=collapsed]:h-3.5" />
-						<span class="group-data-[state=collapsed]:hidden">Sign out</span>
+						<span class="group-data-[state=collapsed]:hidden">退出登录</span>
 					</button>
 				</Sidebar.MenuItem>
 			</Sidebar.Menu>

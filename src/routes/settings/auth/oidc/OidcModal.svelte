@@ -125,23 +125,23 @@
 		let hasErrors = false;
 
 		if (!formName.trim()) {
-			formErrors.name = 'Name is required';
+			formErrors.name = '名称必填';
 			hasErrors = true;
 		}
 		if (!formIssuerUrl.trim()) {
-			formErrors.issuerUrl = 'Issuer URL is required';
+			formErrors.issuerUrl = 'Issuer URL 必填';
 			hasErrors = true;
 		}
 		if (!formClientId.trim()) {
-			formErrors.clientId = 'Client ID is required';
+			formErrors.clientId = '客户端 ID 必填';
 			hasErrors = true;
 		}
 		if (!isEditing && !formClientSecret.trim()) {
-			formErrors.clientSecret = 'Client secret is required';
+			formErrors.clientSecret = '客户端密钥必填';
 			hasErrors = true;
 		}
 		if (!formRedirectUri.trim()) {
-			formErrors.redirectUri = 'Redirect URI is required';
+			formErrors.redirectUri = '重定向 URI 必填';
 			hasErrors = true;
 		}
 
@@ -179,10 +179,10 @@
 				onSaved();
 			} else {
 				const data = await response.json();
-				formError = data.error || `Failed to ${isEditing ? 'update' : 'create'} OIDC configuration`;
+				formError = data.error || `无法${isEditing ? '更新' : '创建'} OIDC 配置`;
 			}
 		} catch {
-			formError = `Failed to ${isEditing ? 'update' : 'create'} OIDC configuration`;
+			formError = `无法${isEditing ? '更新' : '创建'} OIDC 配置`;
 		} finally {
 			formSaving = false;
 		}
@@ -213,20 +213,20 @@
 			<Dialog.Title class="flex items-center gap-2">
 				{#if isEditing}
 					<Pencil class="w-5 h-5" />
-					Edit OIDC provider
+					编辑 OIDC 提供商
 				{:else}
 					<LogIn class="w-5 h-5" />
-					Add OIDC provider
+					添加 OIDC 提供商
 				{/if}
 			</Dialog.Title>
 		</Dialog.Header>
 
 		<Tabs.Root bind:value={formActiveTab} class="flex-1 flex flex-col overflow-hidden">
 			<Tabs.List class="flex-shrink-0 grid w-full grid-cols-2">
-				<Tabs.Trigger value="general">General</Tabs.Trigger>
+				<Tabs.Trigger value="general">常规</Tabs.Trigger>
 				<Tabs.Trigger value="role-mapping" class="flex items-center gap-1.5">
 					<Crown class="w-3.5 h-3.5 text-amber-500" />
-					Role mapping
+					角色映射
 				</Tabs.Trigger>
 			</Tabs.List>
 
@@ -240,10 +240,10 @@
 
 				<!-- Basic Settings -->
 				<div class="space-y-4">
-					<h4 class="text-sm font-medium text-muted-foreground">Basic settings</h4>
+					<h4 class="text-sm font-medium text-muted-foreground">基本设置</h4>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-2">
-							<Label>Name <span class="text-destructive">*</span></Label>
+							<Label>名称 <span class="text-destructive">*</span></Label>
 							<Input
 								bind:value={formName}
 								placeholder="Okta, Auth0, Azure AD..."
@@ -273,18 +273,18 @@
 							onCheckedChange={(checked) => formEnabled = checked === true}
 						/>
 						<Label class="text-sm font-normal cursor-pointer" onclick={() => formEnabled = !formEnabled}>
-							Enable this OIDC provider
+							启用此 OIDC 提供商
 						</Label>
 					</div>
 				</div>
 
 				<!-- Client Credentials -->
 				<div class="space-y-4">
-					<h4 class="text-sm font-medium text-muted-foreground">Client credentials</h4>
-					<p class="text-xs text-muted-foreground">Get these from your identity provider's application settings.</p>
+					<h4 class="text-sm font-medium text-muted-foreground">客户端凭据</h4>
+					<p class="text-xs text-muted-foreground">从身份提供商的 application settings 获取这些信息。</p>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-2">
-							<Label>Client ID <span class="text-destructive">*</span></Label>
+							<Label>客户端 ID <span class="text-destructive">*</span></Label>
 							<Input
 								bind:value={formClientId}
 								placeholder="your-client-id"
@@ -296,11 +296,11 @@
 							{/if}
 						</div>
 						<div class="space-y-2">
-							<Label>Client secret {#if !isEditing}<span class="text-destructive">*</span>{/if}</Label>
+							<Label>客户端密钥 {#if !isEditing}<span class="text-destructive">*</span>{/if}</Label>
 							<Input
 								type="password"
 								bind:value={formClientSecret}
-								placeholder={isEditing ? 'Leave blank to keep existing' : 'your-client-secret'}
+								placeholder={isEditing ? '留空以保持现有值' : 'your-client-secret'}
 								class={formErrors.clientSecret ? 'border-destructive focus-visible:ring-destructive' : ''}
 								oninput={() => formErrors.clientSecret = undefined}
 							/>
@@ -313,9 +313,9 @@
 
 				<!-- Redirect & Scopes -->
 				<div class="space-y-4">
-					<h4 class="text-sm font-medium text-muted-foreground">Redirect settings</h4>
+					<h4 class="text-sm font-medium text-muted-foreground">重定向设置</h4>
 					<div class="space-y-2">
-						<Label>Redirect URI <span class="text-destructive">*</span></Label>
+						<Label>重定向 URI <span class="text-destructive">*</span></Label>
 						<Input
 							bind:value={formRedirectUri}
 							placeholder="https://dockhand.example.com/api/auth/oidc/callback"
@@ -325,11 +325,11 @@
 						{#if formErrors.redirectUri}
 							<p class="text-xs text-destructive">{formErrors.redirectUri}</p>
 						{:else}
-							<p class="text-xs text-muted-foreground">Add this URI to your identity provider's allowed callback URLs.</p>
+							<p class="text-xs text-muted-foreground">将此 URI 添加到身份提供商的允许回调 URL 列表中。</p>
 						{/if}
 					</div>
 					<div class="space-y-2">
-						<Label>Scopes</Label>
+						<Label>作用域</Label>
 						<Input
 							bind:value={formScopes}
 							placeholder="openid profile email"
@@ -339,25 +339,25 @@
 
 				<!-- Claim Mapping -->
 				<div class="space-y-4">
-					<h4 class="text-sm font-medium text-muted-foreground">Claim mapping</h4>
-					<p class="text-xs text-muted-foreground">Map OIDC claims to user attributes.</p>
+					<h4 class="text-sm font-medium text-muted-foreground">声明映射</h4>
+					<p class="text-xs text-muted-foreground">将 OIDC 声明映射到用户属性。</p>
 					<div class="grid grid-cols-3 gap-4">
 						<div class="space-y-2">
-							<Label>Username claim</Label>
+							<Label>用户名声明</Label>
 							<Input
 								bind:value={formUsernameClaim}
 								placeholder="preferred_username"
 							/>
 						</div>
 						<div class="space-y-2">
-							<Label>Email claim</Label>
+							<Label>邮箱声明</Label>
 							<Input
 								bind:value={formEmailClaim}
 								placeholder="email"
 							/>
 						</div>
 						<div class="space-y-2">
-							<Label>Display name claim</Label>
+							<Label>显示名称声明</Label>
 							<Input
 								bind:value={formDisplayNameClaim}
 								placeholder="name"
@@ -374,15 +374,15 @@
 						<div class="text-center">
 							<h3 class="text-lg font-medium mb-2 flex items-center justify-center gap-2">
 								<Crown class="w-5 h-5 text-amber-500" />
-								Enterprise feature
+								企业版功能
 							</h3>
 							<p class="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-								Role mapping allows you to automatically assign Dockhand roles based on your identity provider's groups or claims. This feature requires an enterprise license.
+								角色映射允许您根据身份提供商的组或声明自动分配 Dockhand 角色。此功能需要企业版许可证。
 							</p>
 							{#if onNavigateToLicense}
 								<Button onclick={() => { open = false; onNavigateToLicense?.(); }}>
 									<Key class="w-4 h-4" />
-									Activate license
+									激活许可证
 								</Button>
 							{/if}
 						</div>
@@ -390,24 +390,24 @@
 				{:else}
 					<!-- Admin Mapping (Simple) -->
 					<div class="space-y-4">
-						<h4 class="text-sm font-medium text-muted-foreground">Groups/roles claim</h4>
-						<p class="text-xs text-muted-foreground">Grant admin access based on claim values from your identity provider.</p>
+						<h4 class="text-sm font-medium text-muted-foreground">组/角色声明</h4>
+						<p class="text-xs text-muted-foreground">根据身份提供商的声明值授予管理员权限。</p>
 						<div class="grid grid-cols-2 gap-4">
 							<div class="space-y-2">
-								<Label>Claim name</Label>
+								<Label>声明名称</Label>
 								<Input
 									bind:value={formAdminClaim}
 									placeholder="groups, roles, etc."
 								/>
-								<p class="text-xs text-muted-foreground">Name of the claim containing roles/groups</p>
+								<p class="text-xs text-muted-foreground">包含角色/组的声明名称</p>
 							</div>
 							<div class="space-y-2">
-								<Label>Admin value(s)</Label>
+								<Label>管理员值</Label>
 								<Input
 									bind:value={formAdminValue}
 									placeholder="admin, Administrators"
 								/>
-								<p class="text-xs text-muted-foreground">Comma-separated values that grant Admin role</p>
+								<p class="text-xs text-muted-foreground">授予管理员角色的逗号分隔值</p>
 							</div>
 						</div>
 					</div>
@@ -416,8 +416,8 @@
 					<div class="space-y-4">
 						<div class="flex items-center justify-between">
 							<div>
-								<h4 class="text-sm font-medium text-muted-foreground">Claim to role mappings</h4>
-								<p class="text-xs text-muted-foreground mt-0.5">Map claim values from your identity provider to Dockhand roles.</p>
+								<h4 class="text-sm font-medium text-muted-foreground">声明到角色映射</h4>
+								<p class="text-xs text-muted-foreground mt-0.5">将身份提供商的声明值映射到 Dockhand 角色。</p>
 							</div>
 							<Button
 								size="sm"
@@ -425,13 +425,13 @@
 								onclick={addRoleMapping}
 							>
 								<Plus class="w-4 h-4" />
-								Add mapping
+								添加映射
 							</Button>
 						</div>
 
 						{#if formRoleMappings.length === 0}
 							<div class="text-center py-6 text-muted-foreground text-sm border border-dashed rounded-lg">
-								No role mappings configured. Click "Add mapping" to create one.
+								未配置角色映射。点击"添加映射"创建一个。
 							</div>
 						{:else}
 							<div class="space-y-2">
@@ -439,7 +439,7 @@
 									<div class="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
 										<div class="flex-1 grid grid-cols-2 gap-3">
 											<div class="space-y-1">
-												<Label class="text-xs">Claim value</Label>
+												<Label class="text-xs">声明值</Label>
 												<Input
 													bind:value={mapping.claim_value}
 													placeholder="e.g., developers, admins"
@@ -447,7 +447,7 @@
 												/>
 											</div>
 											<div class="space-y-1">
-												<Label class="text-xs">Dockhand role</Label>
+												<Label class="text-xs">Dockhand 角色</Label>
 												<Select.Root
 													type="single"
 													value={mapping.role_id ? String(mapping.role_id) : undefined}
@@ -459,9 +459,9 @@
 												>
 													<Select.Trigger class="h-8">
 														{#if mapping.role_id}
-															{roles.find(r => r.id === mapping.role_id)?.name || 'Select role...'}
+															{roles.find(r => r.id === mapping.role_id)?.name || '选择角色...'}
 														{:else}
-															Select role...
+															选择角色...
 														{/if}
 													</Select.Trigger>
 													<Select.Content>
@@ -495,7 +495,7 @@
 		</Tabs.Root>
 
 		<Dialog.Footer class="flex-shrink-0 border-t pt-4">
-			<Button variant="outline" onclick={handleClose}>Cancel</Button>
+			<Button variant="outline" onclick={handleClose}>取消</Button>
 			<Button onclick={save} disabled={formSaving}>
 				{#if formSaving}
 					<RefreshCw class="w-4 h-4 mr-1 animate-spin" />
@@ -504,7 +504,7 @@
 				{:else}
 					<Plus class="w-4 h-4" />
 				{/if}
-				{isEditing ? 'Save' : 'Add provider'}
+				{isEditing ? '保存' : '添加提供商'}
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

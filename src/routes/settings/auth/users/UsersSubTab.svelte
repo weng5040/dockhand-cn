@@ -255,14 +255,14 @@
 				<div>
 					<Card.Title class="text-sm font-medium flex items-center gap-2">
 						<Users class="w-4 h-4" />
-						Users
+						用户
 					</Card.Title>
-					<p class="text-xs text-muted-foreground mt-1">Manage user accounts for local authentication, SSO, and LDAP.</p>
+					<p class="text-xs text-muted-foreground mt-1">管理本地认证、SSO 和 LDAP 的用户账户。</p>
 				</div>
 				{#if $canAccess('users', 'create')}
 					<Button size="sm" onclick={() => openUserModal(null)}>
 						<UserPlus class="w-4 h-4" />
-						Add user
+						添加用户
 					</Button>
 				{/if}
 			</div>
@@ -275,8 +275,8 @@
 			{:else if localUsers.length === 0}
 				<EmptyState
 					icon={Users}
-					title="No users configured"
-					description="Create the first user to enable login"
+					title="未配置用户"
+					description="创建第一个用户以启用登录"
 				/>
 			{:else}
 				<!-- Filter bar -->
@@ -285,13 +285,13 @@
 						<Search class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
 						<Input
 							type="text"
-							placeholder="Search users..."
+							placeholder="搜索用户..."
 							bind:value={searchQuery}
 							class="pl-8 h-8 text-sm"
 						/>
 					</div>
 					<div class="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
-						<span>{filteredAndSortedUsers.length} of {localUsers.length} users</span>
+						<span>{filteredAndSortedUsers.length} / {localUsers.length} 个用户</span>
 					</div>
 				</div>
 				<!-- Table -->
@@ -305,7 +305,7 @@
 										class="flex items-center gap-1 hover:text-foreground transition-colors"
 										onclick={() => toggleSort('username')}
 									>
-										User
+										用户
 										{#if sortField === 'username'}
 											{#if sortDirection === 'asc'}<ArrowUp class="w-3 h-3" />{:else}<ArrowDown class="w-3 h-3" />{/if}
 										{:else}
@@ -319,7 +319,7 @@
 										class="flex items-center gap-1 hover:text-foreground transition-colors"
 										onclick={() => toggleSort('email')}
 									>
-										Email
+										邮箱
 										{#if sortField === 'email'}
 											{#if sortDirection === 'asc'}<ArrowUp class="w-3 h-3" />{:else}<ArrowDown class="w-3 h-3" />{/if}
 										{:else}
@@ -329,7 +329,7 @@
 								</th>
 								<th class="text-left py-1.5 px-3 font-medium w-[8%]">MFA</th>
 								{#if $licenseStore.isEnterprise}
-									<th class="text-left py-1.5 px-3 font-medium w-[25%]">Roles</th>
+									<th class="text-left py-1.5 px-3 font-medium w-[25%]">角色</th>
 								{/if}
 								<th class="text-left py-1.5 px-3 font-medium w-[15%]">
 									<button
@@ -337,7 +337,7 @@
 										class="flex items-center gap-1 hover:text-foreground transition-colors"
 										onclick={() => toggleSort('provider')}
 									>
-										Provider
+										认证方式
 										{#if sortField === 'provider'}
 											{#if sortDirection === 'asc'}<ArrowUp class="w-3 h-3" />{:else}<ArrowDown class="w-3 h-3" />{/if}
 										{:else}
@@ -364,7 +364,7 @@
 											<div class="flex items-center gap-1.5">
 												<span class="font-medium">{user.username}</span>
 												{#if !user.isActive}
-													<Badge variant="destructive" class="text-2xs px-1 py-0 h-4">Disabled</Badge>
+													<Badge variant="destructive" class="text-2xs px-1 py-0 h-4">已禁用</Badge>
 												{/if}
 											</div>
 										</div>
@@ -378,7 +378,7 @@
 										{#if user.mfaEnabled}
 											<Badge variant="outline" class="text-2xs px-1.5 py-0 h-4 gap-1 rounded-sm bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30">
 												<Shield class="w-2.5 h-2.5" />
-												Enabled
+												已启用
 											</Badge>
 										{:else}
 											<span class="text-muted-foreground">—</span>
@@ -397,7 +397,7 @@
 														</Badge>
 													{/each}
 													{#if hiddenRolesCount > 0}
-														<span class="text-2xs text-muted-foreground">+{hiddenRolesCount} more</span>
+														<span class="text-2xs text-muted-foreground">+{hiddenRolesCount} 个</span>
 													{/if}
 												</div>
 											{:else}
@@ -428,7 +428,7 @@
 											{#if $canAccess('users', 'delete')}
 												<ConfirmPopover
 													open={confirmDeleteUserId === user.id}
-													action="Delete"
+													action="删除"
 													itemType="user"
 													itemName={user.username}
 													onConfirm={() => deleteLocalUser(user.id)}
@@ -446,7 +446,7 @@
 								<tr>
 									<td colspan={$licenseStore.isEnterprise ? 6 : 5} class="py-8 text-center text-muted-foreground">
 										<Search class="w-8 h-8 mx-auto mb-2 opacity-50" />
-										<p>No users found matching "{searchQuery}"</p>
+										<p>未找到匹配 "{searchQuery}" 的用户</p>
 									</td>
 								</tr>
 							{/each}
@@ -473,17 +473,17 @@
 		<Dialog.Header>
 			<Dialog.Title class="flex items-center gap-2 text-destructive">
 				<AlertTriangle class="w-5 h-5" />
-				Delete last admin?
+				删除最后一个管理员？
 			</Dialog.Title>
 			<Dialog.Description class="text-left">
-				This is the only admin account. Deleting it will <strong>disable authentication</strong> and allow anyone to access Dockhand without logging in.
+				这是唯一的管理员账户。删除它将<strong>禁用认证</strong>，允许任何人无需登录即可访问 Dockhand。
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>
-			<Button variant="outline" onclick={cancelLastAdminDelete}>Cancel</Button>
+			<Button variant="outline" onclick={cancelLastAdminDelete}>取消</Button>
 			<Button variant="destructive" onclick={confirmLastAdminDelete}>
 				<Trash2 class="w-4 h-4" />
-				Delete and disable auth
+				删除并禁用认证
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

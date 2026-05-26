@@ -228,7 +228,7 @@ services:
 				<Card.Header>
 					<Card.Title class="text-sm font-medium flex items-center gap-2">
 						<Eye class="w-4 h-4" />
-						Appearance
+						外观
 						<Tooltip.Provider delayDuration={100}>
 							<Tooltip.Root>
 								<Tooltip.Trigger>
@@ -237,9 +237,9 @@ services:
 								<Tooltip.Portal>
 									<Tooltip.Content side="right" sideOffset={8} class="!w-80">
 										{#if $authStore.authEnabled}
-											These settings apply to the login page and as defaults. Personal preferences can be configured in your profile.
+											这些设置适用于登录页面和默认值。个人偏好可以在您的个人资料中配置。
 										{:else}
-											Theme and font settings are global when authentication is disabled.
+											当禁用身份验证时，主题和字体设置是全局的。
 										{/if}
 									</Tooltip.Content>
 								</Tooltip.Portal>
@@ -253,94 +253,94 @@ services:
 						<div class="space-y-4">
 							<div class="space-y-1">
 								<div class="flex items-center gap-3">
-									<Label>Show stopped containers</Label>
+									<Label>显示已停止的容器</Label>
 									<TogglePill
 										checked={showStoppedContainers}
 										onchange={(checked) => {
 											appSettings.setShowStoppedContainers(checked);
-											toast.success(checked ? 'Stopped containers shown' : 'Stopped containers hidden');
+											toast.success(checked ? '已显示已停止的容器' : '已隐藏已停止的容器');
 										}}
 										disabled={!$canAccess('settings', 'edit')}
 									/>
 								</div>
-								<p class="text-xs text-muted-foreground">Display stopped and exited containers in lists</p>
+								<p class="text-xs text-muted-foreground">在列表中显示已停止和已退出的容器</p>
 							</div>
 							<div class="space-y-1">
 								<div class="flex items-center gap-3">
-									<Label>Highlight available updates</Label>
+									<Label>高亮可用更新</Label>
 									<TogglePill
 										checked={highlightUpdates}
 										onchange={(checked) => {
 											appSettings.setHighlightUpdates(checked);
-											toast.success(checked ? 'Update highlighting enabled' : 'Update highlighting disabled');
+											toast.success(checked ? '已启用更新高亮' : '已禁用更新高亮');
 										}}
 										disabled={!$canAccess('settings', 'edit')}
 									/>
 								</div>
-								<p class="text-xs text-muted-foreground">Highlight container rows in amber when updates are available</p>
+								<p class="text-xs text-muted-foreground">当有可用更新时，以琥珀色高亮显示容器行</p>
 							</div>
 							<div class="space-y-1">
 								<div class="flex items-center gap-3">
-									<Label>Compact port display</Label>
+									<Label>紧凑端口显示</Label>
 									<TogglePill
 										checked={compactPorts}
 										onchange={(checked) => {
 											appSettings.setCompactPorts(checked);
-											toast.success(checked ? 'Compact port display enabled' : 'Showing all ports');
+											toast.success(checked ? '已启用紧凑端口显示' : '显示所有端口');
 										}}
 										disabled={!$canAccess('settings', 'edit')}
 									/>
 								</div>
-								<p class="text-xs text-muted-foreground">Show first port with +N count instead of all ports</p>
+								<p class="text-xs text-muted-foreground">显示第一个端口和+N计数，而不是所有端口</p>
 							</div>
 							<div class="space-y-1">
 								<div class="flex items-center gap-3">
-									<Label>Show exposed ports</Label>
+									<Label>显示暴露端口</Label>
 									<Tooltip.Root>
 										<Tooltip.Trigger>
 											<HelpCircle class="w-3.5 h-3.5 text-muted-foreground" />
 										</Tooltip.Trigger>
 										<Tooltip.Content side="top" class="max-w-xs">
-											<p>Shows internal container ports (from EXPOSE directives) that are not published to the host. These appear in the container list with an amber badge to distinguish them from published port mappings.</p>
+											<p>显示未发布到主机的内部容器端口（来自EXPOSE指令）。这些端口在容器列表中显示为琥珀色徽章，以区别于已发布的端口映射。</p>
 										</Tooltip.Content>
 									</Tooltip.Root>
 									<TogglePill
 										checked={showExposedPorts}
 										onchange={(checked) => {
 											appSettings.setShowExposedPorts(checked);
-											toast.success(checked ? 'Showing exposed ports in container list' : 'Exposed ports hidden from container list');
+											toast.success(checked ? '在容器列表中显示暴露端口' : '在容器列表中隐藏暴露端口');
 										}}
 										disabled={!$canAccess('settings', 'edit')}
 									/>
 								</div>
-								<p class="text-xs text-muted-foreground">Display internal container ports in the container list grid</p>
+								<p class="text-xs text-muted-foreground">在容器列表网格中显示内部容器端口</p>
 							</div>
 							<div class="space-y-1">
 								<div class="flex items-center gap-3">
-									<Label>Time format</Label>
+									<Label>时间格式</Label>
 									<ToggleSwitch
 										value={timeFormat}
 										leftValue="24h"
 										rightValue="12h"
 										onchange={(newFormat) => {
 											appSettings.setTimeFormat(newFormat as '12h' | '24h');
-											toast.success(`Time format set to ${newFormat === '12h' ? '12-hour (AM/PM)' : '24-hour'}`);
+											toast.success(`时间格式设置为 ${newFormat === '12h' ? '12小时制 (AM/PM)' : '24小时制'}`);
 										}}
 										disabled={!$canAccess('settings', 'edit')}
 									/>
 								</div>
-								<p class="text-xs text-muted-foreground">Display timestamps in 12-hour (AM/PM) or 24-hour format</p>
+								<p class="text-xs text-muted-foreground">以12小时制（AM/PM）或24小时制显示时间戳</p>
 							</div>
 							<div class="space-y-1">
 								<div class="flex items-center gap-3">
-									<Label>Date format</Label>
+									<Label>日期格式</Label>
 									<Select.Root
 										type="single"
 										value={dateFormat}
 										onValueChange={(value) => {
 											if (value) {
 												appSettings.setDateFormat(value as DateFormat);
-												toast.success(`Date format set to ${value}`);
+												toast.success(`日期格式设置为 ${value}`);
 											}
 										}}
 										disabled={!$canAccess('settings', 'edit')}
@@ -361,7 +361,7 @@ services:
 										</Select.Content>
 									</Select.Root>
 								</div>
-								<p class="text-xs text-muted-foreground">How dates are displayed throughout the app</p>
+								<p class="text-xs text-muted-foreground">在整个应用中显示日期的方式</p>
 							</div>
 						</div>
 						<!-- Right column: Theme settings (always shown, with hint when auth enabled) -->
@@ -371,7 +371,7 @@ services:
 								<div class="text-xs text-muted-foreground flex items-start gap-1.5 mt-2 p-2 bg-muted/50 rounded-md">
 									<HelpCircle class="w-3.5 h-3.5 shrink-0 mt-0.5" />
 									<div>
-										<p>Personal theme preferences can be configured in your <a href="/profile" class="text-primary hover:underline">profile</a>.</p>
+										<p>个人主题偏好可以在您的<a href="/profile" class="text-primary hover:underline">个人资料</a>中配置。</p>
 									</div>
 								</div>
 							{/if}
@@ -384,21 +384,21 @@ services:
 				<Card.Header>
 					<Card.Title class="text-sm font-medium flex items-center gap-2">
 						<Globe class="w-4 h-4" />
-						Scheduling
+						调度
 					</Card.Title>
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					<div class="space-y-2">
-						<Label>Default timezone</Label>
+						<Label>默认时区</Label>
 						<TimezoneSelector
 							value={defaultTimezone}
 							onchange={(value) => {
 								appSettings.setDefaultTimezone(value);
-								toast.success(`Default timezone set to ${value}`);
+								toast.success(`默认时区设置为 ${value}`);
 							}}
 							class="w-[320px]"
 						/>
-						<p class="text-xs text-muted-foreground">Default timezone for new environments. Used for scheduled tasks like auto-updates.</p>
+						<p class="text-xs text-muted-foreground">新环境的默认时区。用于自动更新等计划任务。</p>
 					</div>
 				</Card.Content>
 			</Card.Root>
@@ -407,23 +407,23 @@ services:
 				<Card.Header>
 					<Card.Title class="text-sm font-medium flex items-center gap-2">
 						<Bell class="w-4 h-4" />
-						Confirmations
+						确认
 					</Card.Title>
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					<div class="space-y-1">
 						<div class="flex items-center gap-3">
-							<Label>Confirm destructive actions</Label>
+							<Label>确认破坏性操作</Label>
 							<TogglePill
 								checked={confirmDestructive}
 								onchange={(checked) => {
 									appSettings.setConfirmDestructive(checked);
-									toast.success(checked ? 'Confirmations enabled' : 'Confirmations disabled');
+									toast.success(checked ? '已启用确认' : '已禁用确认');
 								}}
 								disabled={!$canAccess('settings', 'edit')}
 							/>
 						</div>
-						<p class="text-xs text-muted-foreground">Show confirmation dialogs before deleting resources</p>
+						<p class="text-xs text-muted-foreground">在删除资源之前显示确认对话框</p>
 					</div>
 				</Card.Content>
 			</Card.Root>
@@ -432,14 +432,14 @@ services:
 				<Card.Header>
 					<Card.Title class="text-sm font-medium flex items-center gap-2">
 						<FileText class="w-4 h-4" />
-						Logs & files
+						日志和文件
 					</Card.Title>
 				</Card.Header>
 				<Card.Content>
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
 						<div class="space-y-4">
 							<div class="space-y-2">
-								<Label for="log-buffer-size">Log buffer size (KB)</Label>
+								<Label for="log-buffer-size">日志缓冲区大小 (KB)</Label>
 								<div class="flex items-center gap-2">
 									<Input
 										id="log-buffer-size"
@@ -453,48 +453,48 @@ services:
 									/>
 									<span class="text-sm text-muted-foreground">KB</span>
 								</div>
-								<p class="text-xs text-muted-foreground">Maximum log buffer per container panel. Older logs are truncated when exceeded.</p>
+								<p class="text-xs text-muted-foreground">每个容器面板的最大日志缓冲区。超出时，较旧的日志会被截断。</p>
 								{#if logBufferSizeKb > 1000}
 									<div class="flex items-start gap-2 p-2 rounded-md bg-amber-500/10 border border-amber-500/20">
 										<AlertTriangle class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-										<p class="text-xs text-amber-600 dark:text-amber-400">High values may degrade browser performance with verbose containers. Recommended: 250-1000 KB.</p>
+										<p class="text-xs text-amber-600 dark:text-amber-400">高值可能会降低具有详细日志的容器的浏览器性能。推荐：250-1000 KB。</p>
 									</div>
 								{/if}
 							</div>
 							<div class="space-y-1">
 								<div class="flex items-center gap-3">
-									<Label>Download format</Label>
+									<Label>下载格式</Label>
 									<ToggleSwitch
 										value={downloadFormat}
 										leftValue="tar"
 										rightValue="tar.gz"
 										onchange={(newFormat) => {
 											appSettings.setDownloadFormat(newFormat as DownloadFormat);
-											toast.success(`Download format set to ${newFormat}`);
+											toast.success(`下载格式设置为 ${newFormat}`);
 										}}
 										disabled={!$canAccess('settings', 'edit')}
 									/>
 								</div>
-								<p class="text-xs text-muted-foreground">Archive format when downloading files from containers</p>
+								<p class="text-xs text-muted-foreground">从容器下载文件时的存档格式</p>
 							</div>
 						</div>
 						<div class="space-y-4">
 							<div class="space-y-1">
 								<div class="flex items-center gap-3">
-									<Label>Format log timestamps</Label>
+									<Label>格式化日志时间戳</Label>
 									<TogglePill
 										checked={formatLogTimestamps}
 										onchange={(checked) => {
 											appSettings.setFormatLogTimestamps(checked);
-											toast.success(checked ? 'Log timestamp formatting enabled' : 'Log timestamp formatting disabled');
+											toast.success(checked ? '已启用日志时间戳格式化' : '已禁用日志时间戳格式化');
 										}}
 										disabled={!$canAccess('settings', 'edit')}
 									/>
 								</div>
-								<p class="text-xs text-muted-foreground">Convert ISO timestamps in logs to your configured date/time format</p>
+								<p class="text-xs text-muted-foreground">将日志中的ISO时间戳转换为您的配置的日期/时间格式</p>
 								<div class="flex items-start gap-1.5 mt-1">
 									<Info class="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
-									<p class="text-xs text-muted-foreground">Docker logs use UTC timestamps by default. When enabled, timestamps like <code class="bg-muted px-1 rounded">2026-01-12T07:47:44Z</code> are converted to local time using your date/time settings.</p>
+									<p class="text-xs text-muted-foreground">Docker日志默认使用UTC时间戳。启用后，像<code class="bg-muted px-1 rounded">2026-01-12T07:47:44Z</code>这样的时间戳将使用您的日期/时间设置转换为本地时间。</p>
 								</div>
 							</div>
 						</div>
@@ -506,9 +506,9 @@ services:
 				<Card.Header>
 					<Card.Title class="text-sm font-medium flex items-center gap-2">
 						<FileText class="w-4 h-4" />
-						Compose template
+						Compose模板
 					</Card.Title>
-					<p class="text-xs text-muted-foreground">Default YAML content when creating a new stack.</p>
+					<p class="text-xs text-muted-foreground">创建新应用栈时的默认YAML内容。</p>
 				</Card.Header>
 				<Card.Content class="space-y-3">
 					<div class="h-64">
@@ -524,11 +524,11 @@ services:
 						<div class="flex gap-2">
 							<Button size="sm" variant="outline" onclick={saveComposeTemplate}>
 								<Save class="w-3.5 h-3.5" />
-								Save template
+								保存模板
 							</Button>
 							<Button size="sm" variant="ghost" onclick={revertComposeTemplate}>
 								<RotateCcw class="w-3.5 h-3.5" />
-								Revert to default
+								恢复为默认值
 							</Button>
 						</div>
 					{/if}
@@ -543,12 +543,12 @@ services:
 				<Card.Header>
 					<Card.Title class="text-sm font-medium flex items-center gap-2">
 						<ShieldCheck class="w-4 h-4" />
-						Vulnerability scanners
+						漏洞扫描器
 					</Card.Title>
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					<div class="space-y-2">
-						<Label for="grype-image">Grype image</Label>
+						<Label for="grype-image">Grype镜像</Label>
 						<Input
 							id="grype-image"
 							value={defaultGrypeImage}
@@ -556,10 +556,10 @@ services:
 							disabled={!$canAccess('settings', 'edit')}
 							placeholder={"anchore/grype:v0.110.0"}
 						/>
-						<p class="text-xs text-muted-foreground">Docker image for Grype scanner. Pin to a specific version for supply chain security.</p>
+						<p class="text-xs text-muted-foreground">Grype扫描器的Docker镜像。固定到特定版本以确保供应链安全。</p>
 					</div>
 					<div class="space-y-2">
-						<Label for="trivy-image">Trivy image</Label>
+						<Label for="trivy-image">Trivy镜像</Label>
 						<Input
 							id="trivy-image"
 							value={defaultTrivyImage}
@@ -567,10 +567,10 @@ services:
 							disabled={!$canAccess('settings', 'edit')}
 							placeholder={"aquasec/trivy:0.69.3"}
 						/>
-						<p class="text-xs text-muted-foreground">Docker image for Trivy scanner. Pin to a specific version for supply chain security.</p>
+						<p class="text-xs text-muted-foreground">Trivy扫描器的Docker镜像。固定到特定版本以确保供应链安全。</p>
 					</div>
 					<div class="space-y-2">
-						<Label for="grype-args">Default Grype arguments</Label>
+						<Label for="grype-args">默认Grype参数</Label>
 						<Input
 							id="grype-args"
 							value={defaultGrypeArgs}
@@ -578,10 +578,10 @@ services:
 							disabled={!$canAccess('settings', 'edit')}
 							placeholder={"-o json -v {image}"}
 						/>
-						<p class="text-xs text-muted-foreground">Use <code class="bg-muted px-1 rounded">{'{image}'}</code> as placeholder for the image name</p>
+						<p class="text-xs text-muted-foreground">使用<code class="bg-muted px-1 rounded">{'{image}'}</code>作为镜像名称的占位符</p>
 					</div>
 					<div class="space-y-2">
-						<Label for="trivy-args">Default Trivy arguments</Label>
+						<Label for="trivy-args">默认Trivy参数</Label>
 						<Input
 							id="trivy-args"
 							value={defaultTrivyArgs}
@@ -589,13 +589,13 @@ services:
 							disabled={!$canAccess('settings', 'edit')}
 							placeholder={"image --format json {image}"}
 						/>
-						<p class="text-xs text-muted-foreground">Use <code class="bg-muted px-1 rounded">{'{image}'}</code> as placeholder for the image name</p>
+						<p class="text-xs text-muted-foreground">使用<code class="bg-muted px-1 rounded">{'{image}'}</code>作为镜像名称的占位符</p>
 					</div>
 					<div class="pt-2 border-t">
 						<div class="flex items-center justify-between">
 							<div>
-								<p class="text-sm font-medium">Scanner cache</p>
-								<p class="text-xs text-muted-foreground">Remove cached vulnerability databases to free disk space. Next scan will re-download fresh data (~200MB).</p>
+								<p class="text-sm font-medium">扫描器缓存</p>
+								<p class="text-xs text-muted-foreground">删除缓存的漏洞数据库以释放磁盘空间。下次扫描将重新下载新数据（约200MB）。</p>
 							</div>
 							<Button
 								variant="outline"
@@ -604,9 +604,9 @@ services:
 								onclick={clearScannerCache}
 							>
 								{#if clearingCache}
-									Clearing...
+									清除中...
 								{:else}
-									Clear cache
+									清除缓存
 								{/if}
 							</Button>
 						</div>
@@ -618,22 +618,22 @@ services:
 				<Card.Header>
 					<Card.Title class="text-sm font-medium flex items-center gap-2">
 						<Database class="w-4 h-4" />
-						System jobs
+						系统作业
 					</Card.Title>
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					<div class="space-y-3">
 						<div>
 							<div class="flex items-center gap-2">
-								<Label>Activity event collection mode</Label>
+								<Label>活动事件收集模式</Label>
 								<Tooltip.Root>
 									<Tooltip.Trigger>
 										<HelpCircle class="w-3.5 h-3.5 text-muted-foreground" />
 									</Tooltip.Trigger>
 									<Tooltip.Content class="w-80">
 										<p class="text-xs">
-											<strong>Stream:</strong> Continuous event stream from Docker, instant notifications, higher CPU usage<br />
-											<strong>Poll:</strong> Periodic checks for new events, slight notification delay, lower CPU usage
+											<strong>流：</strong> 来自Docker的连续事件流，即时通知，更高的CPU使用率<br />
+											<strong>轮询：</strong> 定期检查新事件，轻微的通知延迟，更低的CPU使用率
 										</p>
 									</Tooltip.Content>
 								</Tooltip.Root>
@@ -650,7 +650,7 @@ services:
 										class="accent-primary w-4 h-4"
 									/>
 									<Activity class="w-3.5 h-3.5" />
-									<span class="text-sm">Stream</span>
+									<span class="text-sm">流</span>
 								</label>
 								<label class="flex items-center gap-2 cursor-pointer">
 									<input
@@ -663,10 +663,10 @@ services:
 										class="accent-primary w-4 h-4"
 									/>
 									<Clock class="w-3.5 h-3.5" />
-									<span class="text-sm">Poll</span>
+									<span class="text-sm">轮询</span>
 								</label>
 
-								<span class="text-xs text-muted-foreground {(eventCollectionMode || 'stream') === 'poll' ? '' : 'invisible'}">every</span>
+								<span class="text-xs text-muted-foreground {(eventCollectionMode || 'stream') === 'poll' ? '' : 'invisible'}">每</span>
 								<Select.Root
 									type="single"
 									value={String(eventPollInterval || 60000)}
@@ -677,10 +677,10 @@ services:
 										{(eventPollInterval || 60000) === 30000 ? '30s' : (eventPollInterval || 60000) === 60000 ? '60s' : (eventPollInterval || 60000) === 120000 ? '120s' : '300s'}
 									</Select.Trigger>
 									<Select.Content>
-										<Select.Item value="30000">30s</Select.Item>
-										<Select.Item value="60000">60s</Select.Item>
-										<Select.Item value="120000">120s</Select.Item>
-										<Select.Item value="300000">300s</Select.Item>
+										<Select.Item value="30000">30秒</Select.Item>
+										<Select.Item value="60000">60秒</Select.Item>
+										<Select.Item value="120000">120秒</Select.Item>
+										<Select.Item value="300000">300秒</Select.Item>
 									</Select.Content>
 								</Select.Root>
 							</div>
@@ -689,15 +689,14 @@ services:
 
 					<div class="space-y-1 pt-2 border-t">
 						<div class="flex items-center gap-2">
-							<Label for="metrics-interval">Metrics collection interval</Label>
+							<Label for="metrics-interval">指标收集间隔</Label>
 							<Tooltip.Root>
 								<Tooltip.Trigger>
 									<HelpCircle class="w-3.5 h-3.5 text-muted-foreground" />
 								</Tooltip.Trigger>
 								<Tooltip.Content class="w-80">
 									<p class="text-xs">
-										How often to collect CPU/memory metrics from running containers. Lower intervals
-										provide more frequent updates but increase CPU usage.
+										从运行中的容器收集CPU/内存指标的频率。较低的间隔提供更频繁的更新，但会增加CPU使用率。
 									</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
@@ -710,13 +709,13 @@ services:
 								disabled={!$canAccess('settings', 'edit')}
 							>
 								<Select.Trigger class="w-24 h-8">
-									{(metricsCollectionInterval || 30000) === 10000 ? '10s' : (metricsCollectionInterval || 30000) === 30000 ? '30s' : (metricsCollectionInterval || 30000) === 60000 ? '60s' : '120s'}
+									{(metricsCollectionInterval || 30000) === 10000 ? '10秒' : (metricsCollectionInterval || 30000) === 30000 ? '30秒' : (metricsCollectionInterval || 30000) === 60000 ? '60秒' : '120秒'}
 								</Select.Trigger>
 								<Select.Content>
-									<Select.Item value="10000">10s</Select.Item>
-									<Select.Item value="30000">30s</Select.Item>
-									<Select.Item value="60000">60s</Select.Item>
-									<Select.Item value="120000">120s</Select.Item>
+									<Select.Item value="10000">10秒</Select.Item>
+									<Select.Item value="30000">30秒</Select.Item>
+									<Select.Item value="60000">60秒</Select.Item>
+									<Select.Item value="120000">120秒</Select.Item>
 								</Select.Content>
 							</Select.Root>
 						</div>
@@ -724,14 +723,14 @@ services:
 
 					<div class="space-y-1 pt-2 border-t">
 						<div class="flex items-center gap-3">
-							<Label for="schedule-retention">Schedule execution cleanup</Label>
+							<Label for="schedule-retention">计划执行清理</Label>
 							<TogglePill
 								checked={scheduleCleanupEnabled}
 								onchange={handleScheduleCleanupEnabledChange}
 								disabled={!$canAccess('settings', 'edit')}
 							/>
 						</div>
-						<p class="text-xs text-muted-foreground">Delete executions older than specified days</p>
+						<p class="text-xs text-muted-foreground">删除指定天数之前的执行记录</p>
 						<div class="flex items-center gap-2 mt-2">
 							<Input
 								id="schedule-retention"
@@ -743,7 +742,7 @@ services:
 								disabled={!$canAccess('settings', 'edit') || !scheduleCleanupEnabled}
 								class="w-20"
 							/>
-							<span class="text-sm text-muted-foreground">days</span>
+							<span class="text-sm text-muted-foreground">天</span>
 							<div class="ml-auto">
 								<CronEditor
 									value={scheduleCleanupCron}
@@ -755,14 +754,14 @@ services:
 					</div>
 					<div class="space-y-1">
 						<div class="flex items-center gap-3">
-							<Label for="event-retention">Container event cleanup</Label>
+							<Label for="event-retention">容器事件清理</Label>
 							<TogglePill
 								checked={eventCleanupEnabled}
 								onchange={handleEventCleanupEnabledChange}
 								disabled={!$canAccess('settings', 'edit')}
 							/>
 						</div>
-						<p class="text-xs text-muted-foreground">Delete events older than specified days</p>
+						<p class="text-xs text-muted-foreground">删除指定天数之前的事件</p>
 						<div class="flex items-center gap-2 mt-2">
 							<Input
 								id="event-retention"
@@ -774,7 +773,7 @@ services:
 								disabled={!$canAccess('settings', 'edit') || !eventCleanupEnabled}
 								class="w-20"
 							/>
-							<span class="text-sm text-muted-foreground">days</span>
+							<span class="text-sm text-muted-foreground">天</span>
 							<div class="ml-auto">
 								<CronEditor
 									value={eventCleanupCron}
@@ -786,24 +785,24 @@ services:
 					</div>
 					<div class="space-y-1 pt-2 border-t">
 						<div class="flex items-center gap-3">
-							<Label>Volume helper cleanup</Label>
-							<Badge variant="secondary" class="text-xs">Always enabled</Badge>
+							<Label>数据卷助手清理</Label>
+							<Badge variant="secondary" class="text-xs">始终启用</Badge>
 						</div>
 						<p class="text-xs text-muted-foreground">
-							Automatically removes temporary containers used for browsing volume contents.
-							Runs every 30 minutes and on startup.
+							自动删除用于浏览数据卷内容的临时容器。
+							每30分钟和启动时运行。
 						</p>
 					</div>
 					<div class="space-y-1 pt-2 border-t">
 						<div class="flex items-center gap-3">
-							<Label>Scanner cache cleanup</Label>
+							<Label>扫描器缓存清理</Label>
 							<TogglePill
 								checked={scannerCleanupEnabled}
 								onchange={handleScannerCleanupEnabledChange}
 								disabled={!$canAccess('settings', 'edit')}
 							/>
 						</div>
-						<p class="text-xs text-muted-foreground">Remove cached vulnerability databases to reclaim disk space</p>
+						<p class="text-xs text-muted-foreground">删除缓存的漏洞数据库以回收磁盘空间</p>
 						<div class="flex items-center gap-2 mt-2">
 							<div class="ml-auto">
 								<CronEditor
@@ -821,23 +820,23 @@ services:
 				<Card.Header>
 					<Card.Title class="text-sm font-medium flex items-center gap-2">
 						<LayoutDashboard class="w-4 h-4" />
-						Dashboard
+						仪表盘
 					</Card.Title>
 				</Card.Header>
 				<Card.Content class="space-y-4">
 					<div class="space-y-3">
 						<div class="space-y-1">
 							<div class="flex items-center gap-3">
-								<Label>Label filter matching</Label>
+								<Label>标签筛选匹配</Label>
 								<Tooltip.Root>
 									<Tooltip.Trigger>
 										<HelpCircle class="w-3.5 h-3.5 text-muted-foreground" />
 									</Tooltip.Trigger>
 									<Tooltip.Content class="w-80">
 										<p class="text-xs">
-											Controls how multiple selected labels filter environments on the dashboard.
-											<strong>"Any"</strong>: shows environments that have at least one of the selected labels.
-											<strong>"All"</strong>: shows only environments that have every selected label.
+											控制在仪表盘上多个选定标签如何筛选环境。
+											<strong>"任意"</strong>：显示至少有一个选定标签的环境。
+											<strong>"全部"</strong>：仅显示拥有每个选定标签的环境。
 										</p>
 									</Tooltip.Content>
 								</Tooltip.Root>

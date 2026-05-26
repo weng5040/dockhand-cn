@@ -155,7 +155,7 @@
 
 		// Validate first
 		if (!isValidCron(value)) {
-			return 'Invalid';
+			return '无效';
 		}
 
 		try {
@@ -168,7 +168,7 @@
 			});
 			return description;
 		} catch (error) {
-			return 'Invalid';
+			return '无效';
 		}
 	});
 
@@ -190,13 +190,13 @@
 	];
 
 	const daysOfWeek = [
-		{ value: '1', label: 'Monday' },
-		{ value: '2', label: 'Tuesday' },
-		{ value: '3', label: 'Wednesday' },
-		{ value: '4', label: 'Thursday' },
-		{ value: '5', label: 'Friday' },
-		{ value: '6', label: 'Saturday' },
-		{ value: '0', label: 'Sunday' }
+		{ value: '1', label: '周一' },
+		{ value: '2', label: '周二' },
+		{ value: '3', label: '周三' },
+		{ value: '4', label: '周四' },
+		{ value: '5', label: '周五' },
+		{ value: '6', label: '周六' },
+		{ value: '0', label: '周日' }
 	];
 </script>
 
@@ -207,13 +207,13 @@
 			<div class="flex items-center gap-2">
 				{#if scheduleType === 'daily'}
 					<Calendar class="w-4 h-4" />
-					<span>Daily</span>
+					<span>每日</span>
 				{:else if scheduleType === 'weekly'}
 					<CalendarDays class="w-4 h-4" />
-					<span>Weekly</span>
+					<span>每周</span>
 				{:else}
 					<Clock class="w-4 h-4" />
-					<span>Custom</span>
+					<span>自定义</span>
 				{/if}
 			</div>
 		</Select.Trigger>
@@ -221,19 +221,19 @@
 			<Select.Item value="daily">
 				<div class="flex items-center gap-2">
 					<Calendar class="w-4 h-4" />
-					<span>Daily</span>
+					<span>每日</span>
 				</div>
 			</Select.Item>
 			<Select.Item value="weekly">
 				<div class="flex items-center gap-2">
 					<CalendarDays class="w-4 h-4" />
-					<span>Weekly</span>
+					<span>每周</span>
 				</div>
 			</Select.Item>
 			<Select.Item value="custom">
 				<div class="flex items-center gap-2">
 					<Clock class="w-4 h-4" />
-					<span>Custom</span>
+					<span>自定义</span>
 				</div>
 			</Select.Item>
 		</Select.Content>
@@ -241,7 +241,7 @@
 
 	{#if scheduleType === 'daily' || scheduleType === 'weekly'}
 		<!-- Time Selectors -->
-		<span class="text-sm text-muted-foreground">at</span>
+		<span class="text-sm text-muted-foreground">在</span>
 		<Select.Root type="single" value={hour} onValueChange={handleHourChange} {disabled}>
 			<Select.Trigger class="w-[100px] h-9">
 				<span>{hours.find((h: { value: string; label: string }) => h.value === hour)?.label || hour}</span>
@@ -264,7 +264,7 @@
 		</Select.Root>
 
 		{#if scheduleType === 'weekly'}
-			<span class="text-sm text-muted-foreground">on</span>
+			<span class="text-sm text-muted-foreground">的</span>
 			<Select.Root type="single" value={dayOfWeek} onValueChange={handleDayOfWeekChange} {disabled}>
 				<Select.Trigger class="w-[110px] h-9">
 					<span>{daysOfWeek.find(d => d.value === dayOfWeek)?.label || dayOfWeek}</span>
@@ -280,7 +280,7 @@
 	{:else}
 		<!-- Custom cron input -->
 		{@const readable = humanReadable()}
-		{@const isInvalid = readable === 'Invalid'}
+		{@const isInvalid = readable === '无效'}
 		<Input
 			value={value}
 			oninput={handleCustomCronInput}
@@ -295,7 +295,7 @@
 <div class="min-h-[20px] mt-1">
 	{#if value}
 		{@const readable = humanReadable()}
-		{@const isInvalid = readable === 'Invalid'}
+		{@const isInvalid = readable === '无效'}
 		<p class="text-xs {isInvalid ? 'text-destructive' : 'text-muted-foreground'}">
 			{readable}
 		</p>

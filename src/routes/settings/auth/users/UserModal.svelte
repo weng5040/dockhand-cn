@@ -93,14 +93,14 @@
 				method: 'DELETE'
 			});
 			if (response.ok) {
-				toast.success('MFA disabled for user');
+				toast.success('已为用户禁用 MFA');
 				user.mfaEnabled = false;
 			} else {
 				const data = await response.json();
-				toast.error(data.error || 'Failed to disable MFA');
+				toast.error(data.error || '禁用 MFA 失败');
 			}
 		} catch {
-			toast.error('Failed to disable MFA');
+			toast.error('禁用 MFA 失败');
 		} finally {
 			mfaDisabling = false;
 		}
@@ -137,8 +137,8 @@
 				formRoleAssignments = uniqueRoleIds.map(roleId => ({ roleId: roleId as number }));
 			}
 		} catch (error) {
-			console.error('Failed to fetch user roles:', error);
-			toast.error('Failed to fetch user roles');
+			console.error('获取用户角色失败:', error);
+			toast.error('获取用户角色失败');
 		}
 	}
 
@@ -173,8 +173,8 @@
 				}
 			}
 		} catch (error) {
-			console.error('Failed to sync user roles:', error);
-			toast.error('Failed to sync user roles');
+			console.error('同步用户角色失败:', error);
+			toast.error('同步用户角色失败');
 		}
 	}
 
@@ -191,17 +191,17 @@
 		let hasErrors = false;
 
 		if (!formUsername.trim()) {
-			formErrors.username = 'Username is required';
+			formErrors.username = '用户名是必填项';
 			hasErrors = true;
 		}
 
 		if (!formPassword.trim()) {
-			formErrors.password = 'Password is required';
+			formErrors.password = '密码是必填项';
 			hasErrors = true;
 		}
 
 		if (formPassword !== formPasswordRepeat) {
-			formErrors.passwordRepeat = 'Passwords do not match';
+			formErrors.passwordRepeat = '密码不匹配';
 			hasErrors = true;
 		}
 
@@ -232,15 +232,15 @@
 
 				open = false;
 				onSaved();
-				toast.success('User created');
+				toast.success('用户已创建');
 			} else {
 				const data = await response.json();
-				formError = data.details ? `${data.error}: ${data.details}` : (data.error || 'Failed to create user');
+				formError = data.details ? `${data.error}: ${data.details}` : (data.error || '创建用户失败');
 				toast.error(formError);
 			}
 		} catch {
-			formError = 'Failed to create user';
-			toast.error('Failed to create user');
+			formError = '创建用户失败';
+			toast.error('创建用户失败');
 		} finally {
 			formSaving = false;
 		}
@@ -251,12 +251,12 @@
 		let hasErrors = false;
 
 		if (!user || !formUsername.trim()) {
-			formErrors.username = 'Username is required';
+			formErrors.username = '用户名是必填项';
 			hasErrors = true;
 		}
 
 		if (formPassword.trim() && formPassword !== formPasswordRepeat) {
-			formErrors.passwordRepeat = 'Passwords do not match';
+			formErrors.passwordRepeat = '密码不匹配';
 			hasErrors = true;
 		}
 
@@ -285,15 +285,15 @@
 				await syncUserRoles(user!.id);
 				open = false;
 				onSaved();
-				toast.success('User updated');
+				toast.success('用户已更新');
 			} else {
 				const data = await response.json();
-				formError = data.error || 'Failed to update user';
+				formError = data.error || '更新用户失败';
 				toast.error(formError);
 			}
 		} catch {
-			formError = 'Failed to update user';
-			toast.error('Failed to update user');
+			formError = '更新用户失败';
+			toast.error('更新用户失败');
 		} finally {
 			formSaving = false;
 		}
@@ -329,10 +329,10 @@
 			<Dialog.Title class="flex items-center gap-2">
 				{#if isEditing}
 					<Pencil class="w-5 h-5" />
-					Edit user
+					编辑用户
 				{:else}
 					<UserPlus class="w-5 h-5" />
-					Add user
+					添加用户
 				{/if}
 			</Dialog.Title>
 		</Dialog.Header>
@@ -348,7 +348,7 @@
 				<div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
 					<ShieldCheck class="w-4 h-4 text-yellow-600 flex-shrink-0" />
 					<p class="text-sm text-yellow-700 dark:text-yellow-500">
-						SSO user - profile synced from identity provider
+						SSO 用户 - 配置文件从身份提供程序同步
 					</p>
 				</div>
 			{/if}
@@ -357,11 +357,11 @@
 			<div class="space-y-4">
 				<h3 class="text-sm font-medium flex items-center gap-2 text-muted-foreground">
 					<User class="w-4 h-4" />
-					User details
+					用户详情
 				</h3>
 				<div class="grid grid-cols-2 gap-4">
 					<div class="space-y-2">
-						<Label>Username {#if !isEditing}<span class="text-destructive">*</span>{/if}</Label>
+						<Label>用户名 {#if !isEditing}<span class="text-destructive">*</span>{/if}</Label>
 						<Input
 							bind:value={formUsername}
 							placeholder={isEditing ? 'admin' : 'johndoe'}
@@ -375,7 +375,7 @@
 						{/if}
 					</div>
 					<div class="space-y-2">
-						<Label>Email</Label>
+						<Label>邮箱</Label>
 						<Input
 							type="email"
 							bind:value={formEmail}
@@ -386,10 +386,10 @@
 					</div>
 				</div>
 				<div class="space-y-2">
-					<Label>Display name</Label>
+					<Label>显示名称</Label>
 					<Input
 						bind:value={formDisplayName}
-						placeholder={isEditing ? 'Administrator' : 'John Doe'}
+						placeholder={isEditing ? '管理员' : 'John Doe'}
 						disabled={user?.isSso}
 						class={user?.isSso ? 'opacity-60' : ''}
 					/>
@@ -401,19 +401,19 @@
 				<div class="space-y-4">
 					<h3 class="text-sm font-medium flex items-center gap-2 text-muted-foreground">
 						<KeyRound class="w-4 h-4" />
-						Password
+						密码
 					</h3>
 					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-2">
 							{#if isEditing}
-								<Label>New password <span class="text-muted-foreground text-xs">(leave blank to keep current)</span></Label>
+								<Label>新密码 <span class="text-muted-foreground text-xs">(留空以保持当前密码)</span></Label>
 							{:else}
-								<Label>Password <span class="text-destructive">*</span></Label>
+								<Label>密码 <span class="text-destructive">*</span></Label>
 							{/if}
 							<Input
 								type="password"
 								bind:value={formPassword}
-								placeholder={isEditing ? 'Enter new password' : 'Enter password'}
+								placeholder={isEditing ? '输入新密码' : '输入密码'}
 								autocomplete="new-password"
 								class={formErrors.password ? 'border-destructive focus-visible:ring-destructive' : ''}
 								oninput={() => formErrors.password = undefined}
@@ -425,14 +425,14 @@
 						</div>
 						<div class="space-y-2">
 							{#if isEditing}
-								<Label>Confirm password</Label>
+								<Label>确认密码</Label>
 							{:else}
-								<Label>Confirm password <span class="text-destructive">*</span></Label>
+								<Label>确认密码 <span class="text-destructive">*</span></Label>
 							{/if}
 							<Input
 								type="password"
 								bind:value={formPasswordRepeat}
-								placeholder={isEditing ? 'Repeat new password' : 'Repeat password'}
+								placeholder={isEditing ? '重复新密码' : '重复密码'}
 								autocomplete="new-password"
 								class={formErrors.passwordRepeat ? 'border-destructive focus-visible:ring-destructive' : ''}
 								oninput={() => formErrors.passwordRepeat = undefined}
@@ -450,16 +450,16 @@
 				<div class="space-y-3">
 					<h3 class="text-sm font-medium flex items-center gap-2 text-muted-foreground">
 						<Smartphone class="w-4 h-4" />
-						Two-factor authentication
+						双因素认证
 					</h3>
 					<div class="flex items-center justify-between p-3 border rounded-lg">
 						<div>
-							<p class="text-sm font-medium">MFA status</p>
+							<p class="text-sm font-medium">MFA 状态</p>
 							<p class="text-xs text-muted-foreground">
 								{#if user.mfaEnabled}
-									User has MFA configured
+									用户已配置 MFA
 								{:else}
-									User has not configured MFA
+									用户尚未配置 MFA
 								{/if}
 							</p>
 						</div>
@@ -478,8 +478,8 @@
 				{@const customRoles = roles.filter(r => !r.isSystem)}
 				<div class="space-y-3">
 					<div>
-						<Label class="text-sm">Roles</Label>
-						<p class="text-xs text-muted-foreground">Assign roles to this user. Environment scope is configured on the role itself.</p>
+						<Label class="text-sm">角色</Label>
+						<p class="text-xs text-muted-foreground">为此用户分配角色。环境范围在角色本身上配置。</p>
 					</div>
 
 					<div class="border rounded-lg divide-y max-h-[240px] overflow-y-auto">
@@ -488,7 +488,7 @@
 							<div class="p-3 bg-muted/30">
 								<p class="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
 									<Shield class="w-3.5 h-3.5" />
-									System roles
+									系统角色
 								</p>
 								<div class="grid grid-cols-3 gap-2">
 									{#each systemRoles as role}
@@ -516,7 +516,7 @@
 							<div class="p-3">
 								<p class="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1.5">
 									<Globe class="w-3.5 h-3.5" />
-									Custom roles
+									自定义角色
 								</p>
 								<div class="grid grid-cols-2 gap-2">
 									{#each customRoles as role}
@@ -539,9 +539,9 @@
 												<span class="text-2xs opacity-70 flex items-center gap-1">
 													{#if isGlobal}
 														<Globe class="w-2.5 h-2.5" />
-														All environments
+														所有环境
 													{:else}
-														{envCount} environment{envCount !== 1 ? 's' : ''}
+														{envCount} 个环境
 													{/if}
 												</span>
 											</div>
@@ -553,7 +553,7 @@
 
 						{#if roles.length === 0}
 							<div class="p-4 text-center text-sm text-muted-foreground">
-								No roles defined yet
+								尚未定义角色
 							</div>
 						{/if}
 					</div>
@@ -561,35 +561,35 @@
 			{:else}
 				<div class="space-y-1">
 					<p class="text-xs text-muted-foreground">
-						All users have full access to all environments.
+						所有用户对所有环境拥有完全访问权限。
 					</p>
 					<p class="text-xs text-muted-foreground flex items-center gap-1">
 						<Crown class="w-3 h-3 text-amber-500" />
-						Upgrade to Enterprise for role-based access control.
+						升级到企业版以使用基于角色的访问控制。
 					</p>
 				</div>
 			{/if}
 		</div>
 		<Dialog.Footer class="mt-4">
 			{#if isEditing}
-				<Button variant="outline" type="button" onclick={handleClose}>Cancel</Button>
+				<Button variant="outline" type="button" onclick={handleClose}>取消</Button>
 				<Button type="submit" disabled={formSaving}>
 					{#if formSaving}
 						<RefreshCw class="w-4 h-4 mr-1 animate-spin" />
 					{:else}
 						<Check class="w-4 h-4" />
 					{/if}
-					Save
+					保存
 				</Button>
 			{:else}
-				<Button variant="outline" type="button" onclick={handleClose}>Cancel</Button>
+				<Button variant="outline" type="button" onclick={handleClose}>取消</Button>
 				<Button type="submit" disabled={formSaving}>
 					{#if formSaving}
 						<RefreshCw class="w-4 h-4 mr-1 animate-spin" />
 					{:else}
 						<UserPlus class="w-4 h-4" />
 					{/if}
-					Create user
+					创建用户
 				</Button>
 			{/if}
 		</Dialog.Footer>

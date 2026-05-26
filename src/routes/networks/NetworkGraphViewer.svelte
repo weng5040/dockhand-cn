@@ -51,11 +51,11 @@
 	let showLayoutMenu = $state(false);
 
 	const layoutOptions: { value: LayoutType; label: string; icon: string }[] = [
-		{ value: "breadthfirst", label: "Tree", icon: "tree" },
-		{ value: "grid", label: "Grid", icon: "grid" },
-		{ value: "circle", label: "Circle", icon: "circle" },
-		{ value: "concentric", label: "Radial", icon: "radial" },
-		{ value: "cose", label: "Force", icon: "force" },
+		{ value: "breadthfirst", label: "树状", icon: "tree" },
+		{ value: "grid", label: "网格", icon: "grid" },
+		{ value: "circle", label: "环形", icon: "circle" },
+		{ value: "concentric", label: "放射", icon: "radial" },
+		{ value: "cose", label: "力导向", icon: "force" },
 	];
 
 	function buildGraphElements(nets: NetworkInfo[]) {
@@ -562,7 +562,7 @@
 				<button
 					onclick={() => (showLayoutMenu = !showLayoutMenu)}
 					class="h-6 px-2 flex items-center gap-1 rounded text-xs text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-					title="Change layout"
+					title="更改布局"
 				>
 					{#if currentLayout === "breadthfirst"}
 						<GitBranch class="w-3 h-3" />
@@ -590,7 +590,7 @@
 							onclick={() => applyLayout("breadthfirst")}
 						>
 							<GitBranch class="w-3.5 h-3.5" />
-							Tree
+							树状
 						</button>
 						<button
 							class="w-full px-3 py-1.5 text-left text-xs flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 {currentLayout === 'grid'
@@ -599,7 +599,7 @@
 							onclick={() => applyLayout("grid")}
 						>
 							<LayoutGrid class="w-3.5 h-3.5" />
-							Grid
+							网格
 						</button>
 						<button
 							class="w-full px-3 py-1.5 text-left text-xs flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 {currentLayout === 'circle'
@@ -608,7 +608,7 @@
 							onclick={() => applyLayout("circle")}
 						>
 							<Circle class="w-3.5 h-3.5" />
-							Circle
+							环形
 						</button>
 						<button
 							class="w-full px-3 py-1.5 text-left text-xs flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 {currentLayout === 'concentric'
@@ -617,7 +617,7 @@
 							onclick={() => applyLayout("concentric")}
 						>
 							<Target class="w-3.5 h-3.5" />
-							Radial
+							放射
 						</button>
 						<button
 							class="w-full px-3 py-1.5 text-left text-xs flex items-center gap-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 {currentLayout === 'cose'
@@ -626,7 +626,7 @@
 							onclick={() => applyLayout("cose")}
 						>
 							<Sparkles class="w-3.5 h-3.5" />
-							Force
+							力导向
 						</button>
 					</div>
 				{/if}
@@ -636,7 +636,7 @@
 			<button
 				onclick={toggleGraphTheme}
 				class="h-6 w-6 flex items-center justify-center rounded text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-				title={graphTheme === "light" ? "Switch to dark theme" : "Switch to light theme"}
+				title={graphTheme === "light" ? "切换到深色主题" : "切换到浅色主题"}
 			>
 				{#if graphTheme === "light"}
 					<Moon class="w-3.5 h-3.5" />
@@ -672,11 +672,11 @@
 				>
 					<div class="flex items-center gap-1 flex-shrink-0">
 						<div class="w-2 h-2 rounded-sm bg-blue-500 flex-shrink-0"></div>
-						<span class="text-zinc-600 dark:text-zinc-300">Service</span>
+						<span class="text-zinc-600 dark:text-zinc-300">服务</span>
 					</div>
 					<div class="flex items-center gap-1 flex-shrink-0">
 						<div class="w-2 h-2 rounded-sm bg-violet-500 flex-shrink-0"></div>
-						<span class="text-zinc-600 dark:text-zinc-300">Network</span>
+						<span class="text-zinc-600 dark:text-zinc-300">网络</span>
 					</div>
 				</div>
 			</div>
@@ -710,7 +710,7 @@
 											selectedNode = null;
 											selectedEdge = null;
 										}}
-										title="Close"
+										title="关闭"
 									>
 										<X class="w-3.5 h-3.5" />
 									</Button>
@@ -740,7 +740,7 @@
 											selectedNode = null;
 											selectedEdge = null;
 										}}
-										title="Close"
+										title="关闭"
 									>
 										<X class="w-3.5 h-3.5" />
 									</Button>
@@ -756,7 +756,7 @@
 									<!-- Container Id -->
 									<div class="space-y-1.5">
 										<div class="flex items-center justify-between">
-											<span class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Container Id</span>
+											<span class="text-xs font-medium text-zinc-600 dark:text-zinc-300">容器 ID</span>
 										</div>
 										<Input value={selectedNode.config.containerId} placeholder="containerId" class="h-8 text-xs" readonly />
 									</div>
@@ -765,7 +765,7 @@
 								<div class="space-y-3 text-sm">
 									<!-- Driver -->
 									<div class="space-y-1.5">
-										<span class="text-xs font-medium text-zinc-600 dark:text-zinc-300">Driver</span>
+										<span class="text-xs font-medium text-zinc-600 dark:text-zinc-300">驱动</span>
 										<!-- Simulate the select element -->
 										<div class="flex items-center justify-between w-fit h-8 px-3 py-2 text-xs border rounded-md border-input bg-background shadow-sm dark:bg-input/30">
 											<span class="flex items-center gap-1.5">
@@ -789,14 +789,14 @@
 
 									<!-- IPAM Config -->
 									<div class="space-y-1.5">
-										<span class="text-xs font-medium text-zinc-600 dark:text-zinc-300">IPAM configuration</span>
+										<span class="text-xs font-medium text-zinc-600 dark:text-zinc-300">IPAM 配置</span>
 										<div class="space-y-4 pt-2">
 											<div class="relative">
-												<span class="absolute -top-2 left-2 text-[9px] text-zinc-400 bg-white dark:bg-zinc-800 px-1 z-10">Subnet</span>
+												<span class="absolute -top-2 left-2 text-[9px] text-zinc-400 bg-white dark:bg-zinc-800 px-1 z-10">子网</span>
 												<Input value={selectedNode.config.ipam?.config?.[0].subnet} placeholder="172.20.0.0/16" class="h-9 pt-3 text-xs" readonly />
 											</div>
 											<div class="relative">
-												<span class="absolute -top-2 left-2 text-[9px] text-zinc-400 bg-white dark:bg-zinc-800 px-1 z-10">Gateway</span>
+												<span class="absolute -top-2 left-2 text-[9px] text-zinc-400 bg-white dark:bg-zinc-800 px-1 z-10">网关</span>
 												<Input value={selectedNode.config.ipam?.config?.[0].gateway} placeholder="172.20.0.1" class="h-9 pt-3 text-xs" readonly />
 											</div>
 										</div>
@@ -806,22 +806,22 @@
 									<div class="space-y-2 pointer-events-none select-none">
 										<label class="flex items-center gap-2 cursor-pointer">
 											<input type="checkbox" bind:checked={selectedNode.config.external} class="rounded border-zinc-300" />
-											<span class="text-xs text-zinc-600">External network</span>
+											<span class="text-xs text-zinc-600">外部网络</span>
 										</label>
 										<label class="flex items-center gap-2 cursor-pointer">
 											<input type="checkbox" bind:checked={selectedNode.config.internal} class="rounded border-zinc-300" />
-											<span class="text-xs text-zinc-600">Internal network</span>
+											<span class="text-xs text-zinc-600">内部网络</span>
 										</label>
 										<label class="flex items-center gap-2 cursor-pointer">
 											<input type="checkbox" bind:checked={selectedNode.config.attachable} class="rounded border-zinc-300" />
-											<span class="text-xs text-zinc-600">Attachable</span>
+											<span class="text-xs text-zinc-600">可附加</span>
 										</label>
 									</div>
 								</div>
 							{/if}
 						{:else if selectedEdge}
 							{#if selectedEdge.type === "network-connection"}
-								<p class="text-xs text-zinc-500 dark:text-zinc-400">Service connected to this network.</p>
+								<p class="text-xs text-zinc-500 dark:text-zinc-400">服务已连接到此网络。</p>
 							{/if}
 						{/if}
 					</div>

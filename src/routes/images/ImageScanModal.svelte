@@ -254,7 +254,7 @@
 				{:else}
 					<ShieldCheck class="w-5 h-5" />
 				{/if}
-				Vulnerability scan
+				漏洞扫描
 				<code class="text-sm font-normal bg-muted px-1.5 py-0.5 rounded ml-1">{imageName}</code>
 			</Dialog.Title>
 		</Dialog.Header>
@@ -276,7 +276,7 @@
 			<div class="flex gap-2">
 				{#if scanStatus === 'error'}
 					<Button variant="outline" onclick={() => scanTabRef?.startScan()}>
-						Retry
+						重试
 					</Button>
 				{/if}
 				{#if scanStatus === 'complete' && scanResults.length > 0 && totalVulnerabilities > 0}
@@ -285,7 +285,7 @@
 							{#snippet child({ props })}
 								<Button variant="outline" {...props}>
 									<Download class="w-4 h-4" />
-									Export
+									导出
 								</Button>
 							{/snippet}
 						</DropdownMenu.Trigger>
@@ -305,15 +305,15 @@
 							{/if}
 							<DropdownMenu.Item onclick={exportToMarkdown} disabled={exportResults.length === 0}>
 								<FileText class="w-4 h-4 mr-2 text-blue-500" />
-								Markdown report (.md)
+								Markdown 报告 (.md)
 							</DropdownMenu.Item>
 							<DropdownMenu.Item onclick={exportToCSV} disabled={exportResults.length === 0}>
 								<FileSpreadsheet class="w-4 h-4 mr-2 text-green-500" />
-								CSV spreadsheet (.csv)
+								CSV 表格 (.csv)
 							</DropdownMenu.Item>
 							<DropdownMenu.Item onclick={exportToJSON} disabled={exportResults.length === 0}>
 								<FileText class="w-4 h-4 mr-2 text-amber-500" />
-								JSON data (.json)
+								JSON 数据 (.json)
 							</DropdownMenu.Item>
 						</DropdownMenu.Content>
 					</DropdownMenu.Root>
@@ -325,9 +325,9 @@
 				disabled={scanStatus === 'scanning'}
 			>
 				{#if scanStatus === 'scanning'}
-					Scanning...
+					扫描中...
 				{:else}
-					Close
+					关闭
 				{/if}
 			</Button>
 		</Dialog.Footer>

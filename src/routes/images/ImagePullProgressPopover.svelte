@@ -256,16 +256,16 @@
 				<div class="flex items-center gap-2">
 					{#if overallStatus === 'idle'}
 						<Loader2 class="w-4 h-4 animate-spin text-muted-foreground" />
-						<span class="text-sm text-muted-foreground">Initializing...</span>
+						<span class="text-sm text-muted-foreground">初始化中...</span>
 					{:else if overallStatus === 'pulling'}
 						<Loader2 class="w-4 h-4 animate-spin text-blue-600" />
-						<span class="text-sm">Pulling...</span>
+						<span class="text-sm">拉取中...</span>
 					{:else if overallStatus === 'complete'}
 						<CheckCircle2 class="w-4 h-4 text-green-600" />
-						<span class="text-sm text-green-600">Complete!</span>
+						<span class="text-sm text-green-600">完成！</span>
 					{:else if overallStatus === 'error'}
 						<XCircle class="w-4 h-4 text-red-600" />
-						<span class="text-sm text-red-600">Failed</span>
+						<span class="text-sm text-red-600">失败</span>
 					{/if}
 				</div>
 				{#if totalLayers > 0}
@@ -329,7 +329,7 @@
 			</div>
 		{:else if overallStatus === 'complete'}
 			<div class="p-3">
-				<p class="text-xs text-muted-foreground text-center py-2">Image is up to date</p>
+				<p class="text-xs text-muted-foreground text-center py-2">镜像已是最新</p>
 			</div>
 		{/if}
 
@@ -342,7 +342,7 @@
 					class="w-full"
 					onclick={() => handleOpenChange(false)}
 				>
-					Close
+					关闭
 				</Button>
 			</div>
 		{/if}

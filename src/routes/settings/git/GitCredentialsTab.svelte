@@ -87,26 +87,26 @@
 <div class="space-y-4">
 	<div class="flex justify-between items-center">
 		<div>
-			<h3 class="text-lg font-medium">Git credentials</h3>
-			<p class="text-sm text-muted-foreground">Manage credentials for accessing Git repositories</p>
+			<h3 class="text-lg font-medium">Git 凭据</h3>
+			<p class="text-sm text-muted-foreground">管理用于访问 Git 仓库的凭据</p>
 		</div>
 		{#if $canAccess('settings', 'edit')}
 			<Button size="sm" onclick={() => openModal()}>
 				<Plus class="w-4 h-4" />
-				Add credential
+				添加凭据
 			</Button>
 		{/if}
 	</div>
 
 	{#if loading}
-		<p class="text-sm text-muted-foreground">Loading credentials...</p>
+		<p class="text-sm text-muted-foreground">正在加载凭据...</p>
 	{:else if credentials.length === 0}
 		<Card.Root>
 			<Card.Content>
 				<EmptyState
 					icon={Key}
-					title="No Git credentials configured"
-					description="Add credentials to connect to private Git repositories"
+					title="未配置 Git 凭据"
+					description="添加凭据以连接到私有 Git 仓库"
 				/>
 			</Card.Content>
 		</Card.Root>
@@ -129,9 +129,9 @@
 								<div class="font-medium text-sm">{cred.name}</div>
 								<div class="text-xs text-muted-foreground">
 									{#if cred.username}
-										Username: {cred.username}
+										用户名: {cred.username}
 									{:else}
-										No username
+										无用户名
 									{/if}
 								</div>
 							</div>

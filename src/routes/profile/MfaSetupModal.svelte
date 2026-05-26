@@ -37,7 +37,7 @@
 
 	async function verifyAndEnableMfa() {
 		if (!token) {
-			error = 'Please enter the verification code';
+			error = '请输入验证码';
 			return;
 		}
 
@@ -57,10 +57,10 @@
 				backupCodes = data.backupCodes || [];
 				showBackupCodes = true;
 			} else {
-				error = data.error || 'Invalid verification code';
+				error = data.error || '验证码无效';
 			}
 		} catch (e) {
-			error = 'Failed to verify MFA';
+			error = 'MFA验证失败';
 		} finally {
 			loading = false;
 		}
@@ -77,7 +77,7 @@
 	}
 
 	function downloadBackupCodes() {
-		const content = `Dockhand MFA Backup Codes\n${'='.repeat(30)}\n\nThese codes can be used to sign in if you lose access to your authenticator app.\nEach code can only be used once.\n\n${formatBackupCodes()}\n\nGenerated: ${new Date().toISOString()}`;
+		const content = `Dockhand MFA 备用码\n${'='.repeat(30)}\n\n如果无法访问身份验证器应用，可以使用这些代码登录。\n每个代码只能使用一次。\n\n${formatBackupCodes()}\n\n生成时间: ${new Date().toISOString()}`;
 		const blob = new Blob([content], { type: 'text/plain' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
@@ -102,21 +102,21 @@
 			<Dialog.Title class="flex items-center gap-2">
 				{#if showBackupCodes}
 					<ShieldCheck class="w-5 h-5 text-green-500" />
-					MFA enabled successfully
+					MFA启用成功
 				{:else}
 					<QrCode class="w-5 h-5" />
-					Setup two-factor authentication
+					设置双因素认证
 				{/if}
 			</Dialog.Title>
 		</Dialog.Header>
 
 		{#if showBackupCodes}
-			<!-- Backup codes view -->
+			<!-- 备用码视图 -->
 			<div class="space-y-4">
 				<Alert.Root>
 					<TriangleAlert class="h-4 w-4" />
 					<Alert.Description>
-						Save these backup codes in a safe place. Each code can only be used once to sign in if you lose access to your authenticator app.
+						请将这些备用码保存在安全的地方。如果无法访问身份验证器应用，每个代码只能使用一次进行登录。
 					</Alert.Description>
 				</Alert.Root>
 
@@ -136,31 +136,31 @@
 								<Tooltip.Trigger>
 									<XCircle class="w-4 h-4 text-red-500" />
 								</Tooltip.Trigger>
-								<Tooltip.Content>Copy requires HTTPS</Tooltip.Content>
+								<Tooltip.Content>复制需要HTTPS</Tooltip.Content>
 							</Tooltip.Root>
-							Failed
+							失败
 						{:else if copied === 'ok'}
 							<Check class="w-4 h-4" />
-							Copied!
+							已复制！
 						{:else}
 							<Copy class="w-4 h-4" />
-							Copy codes
+							复制代码
 						{/if}
 					</Button>
 					<Button variant="outline" class="flex-1" onclick={downloadBackupCodes}>
 						<Download class="w-4 h-4" />
-						Download
+						下载
 					</Button>
 				</div>
 			</div>
 			<Dialog.Footer>
 				<Button onclick={handleDone}>
 					<ShieldCheck class="w-4 h-4" />
-					Done
+					完成
 				</Button>
 			</Dialog.Footer>
 		{:else}
-			<!-- Setup view -->
+			<!-- 设置视图 -->
 			<div class="space-y-4">
 				{#if error}
 					<Alert.Root variant="destructive">
@@ -170,43 +170,43 @@
 				{/if}
 
 				<p class="text-sm text-muted-foreground">
-					Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
+					使用您的身份验证器应用（Google Authenticator、Authy等）扫描此二维码
 				</p>
 
 				{#if qrCode}
 					<div class="flex justify-center p-4 bg-white rounded-lg">
-						<img src={qrCode} alt="MFA QR Code" class="w-48 h-48" />
+						<img src={qrCode} alt="MFA二维码" class="w-48 h-48" />
 					</div>
 				{/if}
 
 				<div class="space-y-2">
-					<Label class="text-xs text-muted-foreground">Or enter this code manually:</Label>
+					<Label class="text-xs text-muted-foreground">或者手动输入此代码：</Label>
 					<code class="block p-2 bg-muted rounded text-sm font-mono break-all">{secret}</code>
 				</div>
 
 				<div class="space-y-2">
-					<Label>Verification code</Label>
+					<Label>验证码</Label>
 					<Input
 						bind:value={token}
 						name="totp"
-						placeholder="Enter 6-digit code"
+						placeholder="输入6位数字代码"
 						maxlength={6}
 						autocomplete="one-time-code"
 					/>
 					<p class="text-xs text-muted-foreground">
-						Enter the code from your authenticator app to verify setup
+						输入身份验证器应用中的代码以验证设置
 					</p>
 				</div>
 			</div>
 			<Dialog.Footer>
-				<Button variant="outline" onclick={onClose}>Cancel</Button>
+				<Button variant="outline" onclick={onClose}>取消</Button>
 				<Button onclick={verifyAndEnableMfa} disabled={loading || !token}>
 					{#if loading}
 						<RefreshCw class="w-4 h-4 animate-spin" />
 					{:else}
 						<ShieldCheck class="w-4 h-4" />
 					{/if}
-					Enable MFA
+					启用MFA
 				</Button>
 			</Dialog.Footer>
 		{/if}

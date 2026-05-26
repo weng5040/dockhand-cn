@@ -75,17 +75,17 @@
 			});
 
 			if (response.ok) {
-				toast.success(`Connected ${selectedContainerInfo?.name || 'container'} to ${network.name}`);
+				toast.success(`已将 ${selectedContainerInfo?.name || '容器'} 连接到 ${network.name}`);
 				open = false;
 				selectedContainer = undefined;
 				onSuccess();
 			} else {
 				const data = await response.json();
-				toast.error(data.details || 'Failed to connect container');
+				toast.error(data.details || '连接容器失败');
 			}
 		} catch (error) {
 			console.error('Failed to connect container:', error);
-			toast.error('Failed to connect container');
+			toast.error('连接容器失败');
 		} finally {
 			submitting = false;
 		}
@@ -104,10 +104,10 @@
 		<Dialog.Header>
 			<Dialog.Title class="flex items-center gap-2">
 				<Link class="w-4 h-4" />
-				Connect container to {network?.name}
+				连接容器到 {network?.name}
 			</Dialog.Title>
 			<Dialog.Description>
-				Select a container to connect to this network.
+				选择要连接到此网络的容器。
 			</Dialog.Description>
 		</Dialog.Header>
 
@@ -119,12 +119,12 @@
 			{:else if availableContainers.length === 0}
 				<div class="text-center py-8 text-muted-foreground">
 					<Box class="w-8 h-8 mx-auto mb-2 opacity-50" />
-					<p class="text-sm">No containers available to connect.</p>
-					<p class="text-xs mt-1">All containers are already connected to this network.</p>
+					<p class="text-sm">没有可连接的容器。</p>
+					<p class="text-xs mt-1">所有容器都已连接到此网络。</p>
 				</div>
 			{:else}
 				<div class="space-y-2">
-					<Label for="container">Container</Label>
+					<Label for="container">容器</Label>
 					<Select.Root type="single" bind:value={selectedContainer}>
 						<Select.Trigger id="container" class="w-full">
 							{#if selectedContainerInfo}
@@ -133,7 +133,7 @@
 									{selectedContainerInfo.name}
 								</span>
 							{:else}
-								<span class="text-muted-foreground">Select a container...</span>
+								<span class="text-muted-foreground">选择容器...</span>
 							{/if}
 						</Select.Trigger>
 						<Select.Content>
@@ -154,7 +154,7 @@
 
 		<Dialog.Footer>
 			<Button variant="outline" onclick={() => open = false} disabled={submitting}>
-				Cancel
+				取消
 			</Button>
 			<Button
 				onclick={handleConnect}
@@ -165,7 +165,7 @@
 				{:else}
 					<Link class="w-4 h-4" />
 				{/if}
-				Connect
+				连接
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

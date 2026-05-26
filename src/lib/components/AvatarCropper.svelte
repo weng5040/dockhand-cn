@@ -25,8 +25,8 @@
 		outputSize = 256,
 		outputFormat = 'image/jpeg',
 		outputQuality = 0.9,
-		title = 'Crop avatar',
-		saveLabel = 'Save avatar'
+		title = '裁剪头像',
+		saveLabel = '保存头像'
 	}: Props = $props();
 
 	// Cropper state
@@ -234,7 +234,7 @@
 			<div class="p-4 border-b">
 				<h3 class="text-lg font-semibold">{title}</h3>
 				<p class="text-sm text-muted-foreground mt-1">
-					Drag to reposition. Use the slider to zoom.
+					拖拽调整位置。使用滑块缩放。
 				</p>
 			</div>
 
@@ -278,7 +278,7 @@
 					disabled={saving}
 				>
 					<X class="w-4 h-4" />
-					Cancel
+					取消
 				</Button>
 				<Button
 					class="flex-1"
@@ -286,7 +286,7 @@
 					disabled={saving || !imageLoaded}
 				>
 					<Check class="w-4 h-4" />
-					{saving ? 'Uploading...' : !imageLoaded ? 'Loading...' : saveLabel}
+					{saving ? '上传中...' : !imageLoaded ? '加载中...' : saveLabel}
 				</Button>
 			</div>
 		</div>

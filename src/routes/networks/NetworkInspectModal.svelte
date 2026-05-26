@@ -66,7 +66,7 @@
 		<Dialog.Header class="shrink-0">
 			<Dialog.Title class="flex items-center gap-2">
 				<Network class="w-5 h-5" />
-				Network details: <span class="text-muted-foreground font-normal">{networkName || networkId.slice(0, 12)}</span>
+				网络详情: <span class="text-muted-foreground font-normal">{networkName || networkId.slice(0, 12)}</span>
 			</Dialog.Title>
 		</Dialog.Header>
 
@@ -82,10 +82,10 @@
 			{:else if networkData}
 				<!-- Basic Info -->
 				<div class="space-y-3">
-					<h3 class="text-sm font-semibold">Basic information</h3>
+					<h3 class="text-sm font-semibold">基本信息</h3>
 					<div class="grid grid-cols-2 gap-3 text-sm">
 						<div>
-							<p class="text-muted-foreground">Name</p>
+							<p class="text-muted-foreground">名称</p>
 							<p class="font-medium">{networkData.Name}</p>
 						</div>
 						<div>
@@ -93,21 +93,21 @@
 							<code class="text-xs">{networkData.Id?.slice(0, 12)}</code>
 						</div>
 						<div>
-							<p class="text-muted-foreground">Driver</p>
+							<p class="text-muted-foreground">驱动</p>
 							<Badge variant="outline">{networkData.Driver}</Badge>
 						</div>
 						<div>
-							<p class="text-muted-foreground">Scope</p>
+							<p class="text-muted-foreground">范围</p>
 							<Badge variant="secondary">{networkData.Scope}</Badge>
 						</div>
 						<div>
-							<p class="text-muted-foreground">Created</p>
+							<p class="text-muted-foreground">创建时间</p>
 							<p>{formatNetworkDate(networkData.Created)}</p>
 						</div>
 						<div>
-							<p class="text-muted-foreground">Internal</p>
+							<p class="text-muted-foreground">内部网络</p>
 							<Badge variant={networkData.Internal ? 'destructive' : 'secondary'}>
-								{networkData.Internal ? 'Yes' : 'No'}
+								{networkData.Internal ? '是' : '否'}
 							</Badge>
 						</div>
 					</div>
@@ -116,32 +116,32 @@
 				<!-- IPAM Configuration -->
 				{#if networkData.IPAM}
 					<div class="space-y-3">
-						<h3 class="text-sm font-semibold">IPAM configuration</h3>
+						<h3 class="text-sm font-semibold">IPAM 配置</h3>
 						<div class="space-y-2">
 							<div class="text-sm">
-								<p class="text-muted-foreground">Driver</p>
+								<p class="text-muted-foreground">驱动</p>
 								<p>{networkData.IPAM.Driver || 'default'}</p>
 							</div>
 							{#if networkData.IPAM.Config && networkData.IPAM.Config.length > 0}
 								<div class="space-y-2">
-									<p class="text-muted-foreground text-sm">Subnets</p>
+									<p class="text-muted-foreground text-sm">子网</p>
 									{#each networkData.IPAM.Config as config}
 										<div class="p-2 bg-muted rounded text-sm space-y-1">
 											{#if config.Subnet}
 												<div class="flex justify-between">
-													<span class="text-muted-foreground">Subnet:</span>
+													<span class="text-muted-foreground">子网:</span>
 													<code>{config.Subnet}</code>
 												</div>
 											{/if}
 											{#if config.Gateway}
 												<div class="flex justify-between">
-													<span class="text-muted-foreground">Gateway:</span>
+													<span class="text-muted-foreground">网关:</span>
 													<code>{config.Gateway}</code>
 												</div>
 											{/if}
 											{#if config.IPRange}
 												<div class="flex justify-between">
-													<span class="text-muted-foreground">IP Range:</span>
+													<span class="text-muted-foreground">IP 范围:</span>
 													<code>{config.IPRange}</code>
 												</div>
 											{/if}
@@ -156,7 +156,7 @@
 				<!-- Connected Containers -->
 				{#if networkData.Containers && Object.keys(networkData.Containers).length > 0}
 					<div class="space-y-3">
-						<h3 class="text-sm font-semibold">Connected containers ({Object.keys(networkData.Containers).length})</h3>
+						<h3 class="text-sm font-semibold">已连接的容器 ({Object.keys(networkData.Containers).length})</h3>
 						<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
 							{#each Object.entries(networkData.Containers) as [id, container]}
 								<ContainerTile
@@ -172,14 +172,14 @@
 					</div>
 				{:else}
 					<div class="text-sm text-muted-foreground text-center py-4">
-						No containers connected to this network
+						此网络没有连接的容器
 					</div>
 				{/if}
 
 				<!-- Options -->
 				{#if networkData.Options && Object.keys(networkData.Options).length > 0}
 					<div class="space-y-3">
-						<h3 class="text-sm font-semibold">Driver options</h3>
+						<h3 class="text-sm font-semibold">驱动选项</h3>
 						<div class="space-y-1">
 							{#each Object.entries(networkData.Options) as [key, value]}
 								<div class="flex justify-between text-sm p-2 bg-muted rounded">
@@ -194,7 +194,7 @@
 				<!-- Labels -->
 				{#if networkData.Labels && Object.keys(networkData.Labels).length > 0}
 					<div class="space-y-3">
-						<h3 class="text-sm font-semibold">Labels</h3>
+						<h3 class="text-sm font-semibold">标签</h3>
 						<div class="space-y-1">
 							{#each Object.entries(networkData.Labels) as [key, value]}
 								<div class="flex justify-between text-sm p-2 bg-muted rounded">
@@ -209,7 +209,7 @@
 		</div>
 
 		<Dialog.Footer class="shrink-0">
-			<Button variant="outline" onclick={() => (open = false)}>Close</Button>
+			<Button variant="outline" onclick={() => (open = false)}>关闭</Button>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

@@ -39,14 +39,14 @@
 		<Dialog.Header class="shrink-0">
 			<Dialog.Title class="flex items-center gap-2">
 				<Shield class="w-5 h-5" />
-				Privacy policy
+				隐私政策
 			</Dialog.Title>
 		</Dialog.Header>
 
 		<div class="flex-1 min-h-0 overflow-hidden">
 			{#if loading}
 				<div class="flex items-center justify-center h-full">
-					<div class="text-sm text-muted-foreground">Loading...</div>
+					<div class="text-sm text-muted-foreground">加载中...</div>
 				</div>
 			{:else if error}
 				<div class="flex items-center justify-center h-full">
@@ -59,7 +59,7 @@
 
 		<Dialog.Footer class="shrink-0">
 			<Button variant="outline" onclick={() => open = false}>
-				Close
+				关闭
 			</Button>
 		</Dialog.Footer>
 	</Dialog.Content>

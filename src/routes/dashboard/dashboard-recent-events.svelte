@@ -80,14 +80,14 @@
 		const diffMs = now.getTime() - date.getTime();
 		const diffMins = Math.floor(diffMs / 60000);
 
-		if (diffMins < 1) return 'now';
-		if (diffMins < 60) return `${diffMins}m`;
+		if (diffMins < 1) return '现在';
+		if (diffMins < 60) return `${diffMins}分钟前`;
 
 		const diffHours = Math.floor(diffMins / 60);
-		if (diffHours < 24) return `${diffHours}h`;
+		if (diffHours < 24) return `${diffHours}小时前`;
 
 		const diffDays = Math.floor(diffHours / 24);
-		return `${diffDays}d`;
+		return `${diffDays}天前`;
 	}
 </script>
 
@@ -110,7 +110,7 @@
 	>
 		<div class="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
 			<Activity class="w-3 h-3" />
-			<span class="font-medium">Recent events</span>
+			<span class="font-medium">最近事件</span>
 		</div>
 		<!-- Grid layout with fixed columns: timestamp, action icon, container name -->
 		<div class="grid grid-cols-[auto_auto_1fr] gap-x-2 gap-y-1 text-xs">

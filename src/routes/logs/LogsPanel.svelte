@@ -658,14 +658,14 @@
 			<!-- Connection status indicator -->
 			{#if streamingEnabled}
 				{#if isConnected}
-					<div class="flex items-center gap-1.5 transition-opacity duration-300" title="Connected - Live streaming">
+					<div class="flex items-center gap-1.5 transition-opacity duration-300" title="已连接 - 实时流式传输">
 						<Wifi class="w-3.5 h-3.5 text-green-500" />
-						<span class="text-xs text-green-500 font-medium">Live</span>
+						<span class="text-xs text-green-500 font-medium">实时</span>
 					</div>
 				{:else if loading}
-					<div class="flex items-center gap-1.5 transition-opacity duration-300" title="Connecting...">
+					<div class="flex items-center gap-1.5 transition-opacity duration-300" title="连接中...">
 						<RefreshCw class="w-3.5 h-3.5 animate-spin {darkMode ? 'text-amber-500' : 'text-amber-600'}" />
-						<span class="text-xs {darkMode ? 'text-amber-500' : 'text-amber-600'}">Connecting...</span>
+						<span class="text-xs {darkMode ? 'text-amber-500' : 'text-amber-600'}">连接中...</span>
 					</div>
 				{:else if connectionError}
 					<button
@@ -674,22 +674,22 @@
 						title={connectionError}
 					>
 						<WifiOff class="w-3.5 h-3.5 {darkMode ? 'text-zinc-500' : 'text-gray-400'}" />
-						<span class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-400'}">Disconnected</span>
+						<span class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-400'}">已断开</span>
 					</button>
 				{:else}
 					<button
 						onclick={retryConnection}
 						class="flex items-center gap-1.5 transition-opacity duration-300 hover:opacity-80"
-						title="Click to reconnect"
+						title="点击重新连接"
 					>
 						<WifiOff class="w-3.5 h-3.5 {darkMode ? 'text-zinc-500' : 'text-gray-400'}" />
-						<span class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-400'}">Offline</span>
+						<span class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-400'}">离线</span>
 					</button>
 				{/if}
 			{:else}
-				<div class="flex items-center gap-1.5 transition-opacity duration-300" title="Streaming paused">
+				<div class="flex items-center gap-1.5 transition-opacity duration-300" title="流式传输已暂停">
 					<Pause class="w-3.5 h-3.5 {darkMode ? 'text-zinc-500' : 'text-gray-400'}" />
-					<span class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-400'}">Paused</span>
+					<span class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-400'}">已暂停</span>
 				</div>
 			{/if}
 			<span class="text-xs {darkMode ? 'text-zinc-400' : 'text-gray-500'}">|</span>
@@ -700,7 +700,7 @@
 			<button
 				onclick={toggleStreaming}
 				class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-colors {streamingEnabled ? (darkMode ? 'bg-amber-500/20 ring-1 ring-amber-500/50 text-amber-400' : 'bg-amber-500/30 ring-1 ring-amber-600/50 text-amber-700') : darkMode ? 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-300'}"
-				title={streamingEnabled ? 'Pause live streaming' : 'Resume live streaming'}
+				title={streamingEnabled ? '暂停实时流式传输' : '恢复实时流式传输'}
 			>
 				{#if streamingEnabled}
 					<Pause class="w-3 h-3" />
@@ -712,7 +712,7 @@
 			<button
 				onclick={toggleAutoScroll}
 				class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs transition-colors {autoScroll ? (darkMode ? 'bg-amber-500/20 ring-1 ring-amber-500/50 text-amber-400' : 'bg-amber-500/30 ring-1 ring-amber-600/50 text-amber-700') : darkMode ? 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-300'}"
-				title="Toggle auto-scroll"
+				title="切换自动滚动"
 			>
 				<ArrowDownToLine class="w-3 h-3" />
 			</button>
@@ -731,7 +731,7 @@
 			<button
 				onclick={toggleWordWrap}
 				class="p-1 rounded transition-colors {wordWrap ? (darkMode ? 'bg-amber-500/20 ring-1 ring-amber-500/50' : 'bg-amber-500/30 ring-1 ring-amber-600/50') : ''} {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-				title="Toggle word wrap"
+				title="切换自动换行"
 			>
 				<WrapText class="w-3 h-3 transition-colors {wordWrap ? (darkMode ? 'text-amber-400' : 'text-amber-700') : darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
 			</button>
@@ -739,7 +739,7 @@
 			<button
 				onclick={() => { showTimestamps = !showTimestamps; localStorage.setItem('dockhand-log-timestamps', String(showTimestamps)); }}
 				class="p-1 rounded transition-colors {showTimestamps ? (darkMode ? 'bg-amber-500/20 ring-1 ring-amber-500/50' : 'bg-amber-500/30 ring-1 ring-amber-600/50') : ''} {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-				title={showTimestamps ? 'Hide timestamps' : 'Show timestamps'}
+				title={showTimestamps ? '隐藏时间戳' : '显示时间戳'}
 			>
 				<Clock class="w-3 h-3 transition-colors {showTimestamps ? (darkMode ? 'text-amber-400' : 'text-amber-700') : darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
 			</button>
@@ -747,7 +747,7 @@
 			<button
 				onclick={() => { showContainerName = !showContainerName; localStorage.setItem('dockhand-log-container-name', String(showContainerName)); }}
 				class="p-1 rounded transition-colors {showContainerName ? (darkMode ? 'bg-amber-500/20 ring-1 ring-amber-500/50' : 'bg-amber-500/30 ring-1 ring-amber-600/50') : ''} {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-				title={showContainerName ? 'Hide container name prefix' : 'Show container name prefix'}
+				title={showContainerName ? '隐藏容器名称前缀' : '显示容器名称前缀'}
 			>
 				<Tag class="w-3 h-3 transition-colors {showContainerName ? (darkMode ? 'text-amber-400' : 'text-amber-700') : darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
 			</button>
@@ -755,7 +755,7 @@
 			<button
 				onclick={toggleTheme}
 				class="p-1 rounded transition-colors {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-				title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+				title={darkMode ? '切换到浅色模式' : '切换到深色模式'}
 			>
 				{#if darkMode}
 					<Sun class="w-3 h-3 {darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
@@ -770,7 +770,7 @@
 					<input
 						bind:this={logSearchInputRef}
 						type="text"
-						placeholder="Search..."
+						placeholder="搜索..."
 						bind:value={logSearchQuery}
 						onkeydown={handleLogSearchKeydown}
 						class="bg-transparent border-none outline-none text-xs w-20 {darkMode ? 'text-zinc-200 placeholder:text-zinc-500' : 'text-gray-800 placeholder:text-gray-400'}"
@@ -778,7 +778,7 @@
 					<button
 						onclick={toggleSearchFilterMode}
 						class="p-0.5 rounded transition-colors {logSearchFilterMode ? (darkMode ? 'bg-amber-500/20 ring-1 ring-amber-500/50' : 'bg-amber-500/30 ring-1 ring-amber-600/50') : darkMode ? 'hover:bg-zinc-700' : 'hover:bg-gray-300'}"
-						title={logSearchFilterMode ? 'Show all lines (filter mode active)' : 'Hide non-matching lines'}
+						title={logSearchFilterMode ? '显示所有行（过滤模式已激活）' : '隐藏不匹配的行'}
 					>
 						<Filter class="w-3 h-3 transition-colors {logSearchFilterMode ? (darkMode ? 'text-amber-400' : 'text-amber-700') : darkMode ? 'text-zinc-400' : 'text-gray-500'}" />
 					</button>
@@ -787,13 +787,13 @@
 					{:else if logSearchQuery}
 						<span class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-400'}">0/0</span>
 					{/if}
-					<button onclick={() => navigateMatch('prev')} class="p-0.5 rounded {darkMode ? 'hover:bg-zinc-700' : 'hover:bg-gray-300'}" title="Previous">
+					<button onclick={() => navigateMatch('prev')} class="p-0.5 rounded {darkMode ? 'hover:bg-zinc-700' : 'hover:bg-gray-300'}" title="上一个">
 						<ChevronUp class="w-3 h-3 {darkMode ? 'text-zinc-400' : 'text-gray-500'}" />
 					</button>
-					<button onclick={() => navigateMatch('next')} class="p-0.5 rounded {darkMode ? 'hover:bg-zinc-700' : 'hover:bg-gray-300'}" title="Next">
+					<button onclick={() => navigateMatch('next')} class="p-0.5 rounded {darkMode ? 'hover:bg-zinc-700' : 'hover:bg-gray-300'}" title="下一个">
 						<ChevronDown class="w-3 h-3 {darkMode ? 'text-zinc-400' : 'text-gray-500'}" />
 					</button>
-					<button onclick={closeLogSearch} class="p-0.5 rounded {darkMode ? 'hover:bg-zinc-700' : 'hover:bg-gray-300'}" title="Close">
+					<button onclick={closeLogSearch} class="p-0.5 rounded {darkMode ? 'hover:bg-zinc-700' : 'hover:bg-gray-300'}" title="关闭">
 						<X class="w-3 h-3 {darkMode ? 'text-zinc-400' : 'text-gray-500'}" />
 					</button>
 				</div>
@@ -801,7 +801,7 @@
 				<button
 					onclick={toggleLogSearch}
 					class="p-1 rounded transition-colors {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-					title="Search logs"
+					title="搜索日志"
 				>
 					<Search class="w-3 h-3 {darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
 				</button>
@@ -810,7 +810,7 @@
 			<button
 				onclick={copyLogs}
 				class="p-1 rounded transition-colors {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-				title="Copy logs"
+				title="复制日志"
 			>
 				<Copy class="w-3 h-3 {darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
 			</button>
@@ -818,7 +818,7 @@
 			<button
 				onclick={downloadLogs}
 				class="p-1 rounded transition-colors {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-				title="Download logs"
+				title="下载日志"
 			>
 				<Download class="w-3 h-3 {darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
 			</button>
@@ -826,7 +826,7 @@
 			<button
 				onclick={clearLogs}
 				class="p-1 rounded transition-colors {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-				title="Clear logs"
+				title="清空日志"
 			>
 				<Eraser class="w-3 h-3 {darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
 			</button>
@@ -834,7 +834,7 @@
 			<button
 				onclick={fetchLogs}
 				class="p-1 rounded transition-colors {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-				title="Refresh logs"
+				title="刷新日志"
 			>
 				<RefreshCw class="w-3 h-3 {darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
 			</button>
@@ -843,7 +843,7 @@
 				<button
 					onclick={handleClose}
 					class="p-1 rounded transition-colors {darkMode ? 'hover:bg-zinc-800' : 'hover:bg-gray-300'}"
-					title="Close logs"
+					title="关闭日志"
 				>
 					<X class="w-3 h-3 {darkMode ? 'text-zinc-500 hover:text-zinc-300' : 'text-gray-500 hover:text-gray-700'}" />
 				</button>
@@ -856,9 +856,9 @@
 		{#if logs}
 			<pre class="logs-fade-in {wordWrap ? 'whitespace-pre-wrap' : 'whitespace-pre'} {darkMode ? 'text-zinc-50' : 'text-gray-900'}" style="font-size: {fontSize}px; font-family: {terminalFontFamily()};">{@html highlightedLogs()}</pre>
 		{:else if loading}
-			<p class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-500'}">Connecting to log stream...</p>
+			<p class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-500'}">正在连接到日志流...</p>
 		{:else}
-			<p class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-500'}">No logs available</p>
+			<p class="text-xs {darkMode ? 'text-zinc-500' : 'text-gray-500'}">无可用日志</p>
 		{/if}
 	</div>
 </div>

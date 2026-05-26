@@ -168,13 +168,13 @@
 			{error}
 		</div>
 	{:else if history.length === 0}
-		<p class="text-muted-foreground text-sm text-center py-8">No layer history found</p>
+		<p class="text-muted-foreground text-sm text-center py-8">未找到层历史记录</p>
 	{:else}
 		<!-- Summary -->
 		<div class="flex items-center justify-between p-3 bg-muted rounded-lg">
 			<div>
-				<p class="text-sm font-medium">Total layers: <span class="text-primary">{history.length}</span></p>
-				<p class="text-sm font-medium">Total size: <span class="text-primary">{formatSize(totalSize)}</span></p>
+				<p class="text-sm font-medium">总层数: <span class="text-primary">{history.length}</span></p>
+				<p class="text-sm font-medium">总大小: <span class="text-primary">{formatSize(totalSize)}</span></p>
 			</div>
 			<Badge variant="secondary">
 				{imageId.startsWith('sha256:') ? imageId.slice(7, 19) : imageName || imageId}
@@ -185,7 +185,7 @@
 		<div class="space-y-1">
 			<h3 class="sticky top-0 z-10 bg-background text-sm font-semibold mb-2 pb-2 flex items-center gap-2">
 				<Layers class="w-4 h-4" />
-				Layer stack (bottom to top) - click to expand
+				层栈（从底到顶）- 点击展开
 			</h3>
 			<div class="space-y-1">
 				{#each history.slice().reverse() as layer, index}
@@ -243,18 +243,18 @@
 							<div class="px-4 pb-3 space-y-3 border-t border-border bg-muted/20">
 								<div class="grid grid-cols-2 gap-2 pt-3 text-sm">
 									<div>
-										<p class="text-xs text-muted-foreground">Created</p>
+										<p class="text-xs text-muted-foreground">创建时间</p>
 										<p class="text-xs">{formatDate(layer.Created)}</p>
 									</div>
 									<div>
-										<p class="text-xs text-muted-foreground">Size</p>
+										<p class="text-xs text-muted-foreground">大小</p>
 										<p class="text-xs font-mono">{formatSize(layer.Size)}</p>
 									</div>
 								</div>
 
 								{#if layer.CreatedBy}
 									<div class="space-y-1">
-										<p class="text-xs font-medium text-muted-foreground">Command</p>
+										<p class="text-xs font-medium text-muted-foreground">命令</p>
 										<code class="block text-xs bg-muted p-2 rounded overflow-x-auto whitespace-pre-wrap break-all">
 											{@html highlightCommand(layer.CreatedBy)}
 										</code>
@@ -263,14 +263,14 @@
 
 								{#if layer.Comment}
 									<div class="space-y-1">
-										<p class="text-xs font-medium text-muted-foreground">Comment</p>
+										<p class="text-xs font-medium text-muted-foreground">注释</p>
 										<p class="text-xs">{layer.Comment}</p>
 									</div>
 								{/if}
 
 								{#if layer.Tags && layer.Tags.length > 0}
 									<div class="space-y-1">
-										<p class="text-xs font-medium text-muted-foreground">Tags</p>
+										<p class="text-xs font-medium text-muted-foreground">标签</p>
 										<div class="flex flex-wrap gap-1">
 											{#each layer.Tags as tag}
 												<Badge variant="outline" class="text-xs">{tag}</Badge>

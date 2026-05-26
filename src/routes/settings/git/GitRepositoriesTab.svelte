@@ -134,26 +134,26 @@
 <div class="space-y-4">
 	<div class="flex justify-between items-center">
 		<div>
-			<h3 class="text-lg font-medium">Git repositories</h3>
-			<p class="text-sm text-muted-foreground">Manage Git repositories that can be used to deploy stacks</p>
+			<h3 class="text-lg font-medium">Git 仓库</h3>
+			<p class="text-sm text-muted-foreground">管理可用于部署应用栈的 Git 仓库</p>
 		</div>
 		{#if $canAccess('settings', 'edit')}
 			<Button size="sm" onclick={() => openModal()}>
 				<Plus class="w-4 h-4" />
-				Add repository
+				添加仓库
 			</Button>
 		{/if}
 	</div>
 
 	{#if loading}
-		<p class="text-sm text-muted-foreground">Loading repositories...</p>
+		<p class="text-sm text-muted-foreground">正在加载仓库...</p>
 	{:else if repositories.length === 0}
 		<Card.Root>
 			<Card.Content>
 				<EmptyState
 					icon={FolderGit2}
-					title="No Git repositories configured"
-					description="Add a repository to use it when deploying stacks from Git"
+					title="未配置 Git 仓库"
+					description="添加仓库以在从 Git 部署应用栈时使用"
 				/>
 			</Card.Content>
 		</Card.Root>
@@ -182,14 +182,14 @@
 							</span>
 						{/if}
 						{#if repo.credentialName}
-							<span class="flex items-center gap-1 text-xs text-muted-foreground" title="Using credential: {repo.credentialName}">
+							<span class="flex items-center gap-1 text-xs text-muted-foreground" title="使用凭据: {repo.credentialName}">
 								<Lock class="w-3 h-3" />
 								<span class="hidden sm:inline">{repo.credentialName}</span>
 							</span>
 						{:else}
-							<span class="flex items-center gap-1 text-xs text-muted-foreground" title="Public repository">
+							<span class="flex items-center gap-1 text-xs text-muted-foreground" title="公共仓库">
 								<Globe class="w-3 h-3" />
-								<span class="hidden sm:inline">Public</span>
+								<span class="hidden sm:inline">公共</span>
 							</span>
 						{/if}
 						<Badge variant="outline" class="text-xs flex items-center gap-1">
@@ -202,7 +202,7 @@
 							class="h-7 w-7"
 							onclick={() => testRepository(repo.id)}
 							disabled={testingId === repo.id}
-							title="Test connection"
+							title="测试连接"
 						>
 							{#if testingId === repo.id}
 								<Loader2 class="w-3.5 h-3.5 animate-spin" />
@@ -211,7 +211,7 @@
 							{/if}
 						</Button>
 						{#if $canAccess('settings', 'edit')}
-							<Button variant="ghost" size="icon" class="h-7 w-7" onclick={() => openModal(repo)} title="Edit repository">
+							<Button variant="ghost" size="icon" class="h-7 w-7" onclick={() => openModal(repo)} title="编辑仓库">
 								<Pencil class="w-3.5 h-3.5" />
 							</Button>
 							<ConfirmPopover
