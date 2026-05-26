@@ -7,7 +7,7 @@
 # 镜像地址：
 #   ghcr.io/weng5040/dockhand-cn:latest
 #   ghcr.io/weng5040/dockhand-cn:zh-CN
-#   ghcr.io/weng5040/dockhand-cn:<版本号>  (若 VERSION 文件存在)
+#   ghcr.io/weng5040/dockhand-cn:<版本号>  (来自 VERSION 文件)
 #
 # 触发方式：
 #   - 自动：zh-CN 分支有任意推送时
@@ -16,6 +16,8 @@
 # 注意事项：
 #   - 使用 GITHUB_TOKEN 登录 ghcr.io，无需额外配置 Secret
 #   - 镜像默认为 public，带有多个 tag 方便不同场景使用
+#   - 项目使用 Bun 作为包管理器，没有 package-lock.json
+#     构建前会自动用 npm 生成一份，供 Dockerfile 的 npm ci 使用
 # ============================================================
 
 name: Docker Build & Push
@@ -26,6 +28,10 @@ on:
     branches: [zh-CN]
   # 允许在 GitHub Actions 页面手动触发
   workflow_dispatch:
+
+# 强制使用 Node.js 24 运行 Actions，避免 Node.js 20 过期警告
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
   contents: read   # 读取仓库代码
@@ -60,7 +66,25 @@ jobs:
           echo "📌 镜像版本号：$VERSION"
 
       # -------------------------------------------------------
-      # 步骤 3：登录到 GitHub Container Registry (ghcr.io)
+      # 步骤 3：安装 Node.js（用于生成 package-lock.json）
+      # 原项目使用 Bun，没有 package-lock.json，
+      # 但 Dockerfile 的 Stage 2 使用 npm ci 构建，必须提供此文件
+      # -------------------------------------------------------
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: 生成 package-lock.json
+        run: |
+          echo "📦 正在生成 package-lock.json..."
+          # --package-lock-only 只生成锁文件，不安装任何包
+          # --ignore-scripts 避免执行 postinstall 脚本
+          npm install --package-lock-only --ignore-scripts
+          echo "✅ package-lock.json 已生成"
+
+      # -------------------------------------------------------
+      # 步骤 4：登录到 GitHub Container Registry (ghcr.io)
       # 使用 GITHUB_TOKEN 自动鉴权，无需额外配置
       # -------------------------------------------------------
       - name: 登录 GitHub Container Registry
@@ -71,13 +95,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       # -------------------------------------------------------
-      # 步骤 4：设置 Docker Buildx（支持多平台构建）
+      # 步骤 5：设置 Docker Buildx（支持多平台构建）
       # -------------------------------------------------------
       - name: 设置 Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       # -------------------------------------------------------
-      # 步骤 5：构建并推送镜像
+      # 步骤 6：构建并推送镜像
       # 镜像 tag 说明：
       #   :latest    → 始终指向最新构建
       #   :zh-CN     → 表明这是中文版镜像
@@ -97,7 +121,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       # -------------------------------------------------------
-      # 步骤 6：输出镜像拉取命令，方便直接使用
+      # 步骤 7：输出镜像拉取命令，方便直接使用
       # -------------------------------------------------------
       - name: 输出镜像信息
         run: |
