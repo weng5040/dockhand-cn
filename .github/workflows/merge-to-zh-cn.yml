@@ -1,0 +1,62 @@
+name: Merge main into zh-CN
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出 zh-CN 分支
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: zh-CN
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 配置 Git 用户信息
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+      - name: 将 main 最新内容合并到 zh-CN
+        run: |
+          git fetch origin main
+          git merge origin/main --no-edit --strategy-option=theirs || true
+
+      - name: 保护 .github 目录不被覆盖
+        run: |
+          git checkout HEAD -- .github/
+
+      - name: 推送更新到 zh-CN 分支
+        run: |
+          git push origin zh-CN
+
+      - name: 合并失败时创建 Issue 通知
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "⚠️ zh-CN 分支合并失败，需要手动处理",
+              body:
+                "自动将 main 合并到 zh-CN 时发生错误。\n\n" +
+                "👉 可能原因：\n" +
+                "- 翻译文件与上游更新存在严重冲突\n" +
+                "- .github 目录还原失败\n" +
+                "- 推送权限不足\n\n" +
+                "📋 查看详细日志：" +
+                context.serverUrl + "/" +
+                context.repo.owner + "/" +
+                context.repo.repo +
+                "/actions/runs/" + context.runId
+            });
