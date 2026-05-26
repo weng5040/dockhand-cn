@@ -1,42 +1,74 @@
+# 工作流名称：将 main 分支合并到 zh-CN 分支
 name: Merge main into zh-CN
 
+# 触发条件配置
 on:
+  # 当 main 分支有代码推送时自动触发
   push:
     branches: [main]
+  # 允许手动触发工作流
   workflow_dispatch:
 
+# 定义执行任务
 jobs:
   merge:
+    # 使用最新的 Ubuntu 运行环境
     runs-on: ubuntu-latest
+    
+    # 权限配置：授予写入仓库内容的权限
     permissions:
       contents: write
+    
+    # 具体执行步骤
     steps:
+      # 第一步：检出 zh-CN 分支代码
       - uses: actions/checkout@v5
         with:
+          # 获取完整的 git 历史记录（用于合并操作）
           fetch-depth: 0
+          # 指定要检出的分支
           ref: zh-CN
+          # 使用 GitHub 自动生成的令牌进行身份验证
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # 第二步：配置 Git 用户信息
       - name: Configure git
         run: |
+          # 设置提交者邮箱（使用 GitHub Actions 官方邮箱）
           git config user.email "actions@github.com"
+          # 设置提交者用户名
           git config user.name "GitHub Actions"
 
+      # 第三步：执行合并操作并处理 .github 目录
       - name: Merge main, keep zh-CN's .github
         run: |
+          # 获取远程 main 分支的最新代码
           git fetch origin main
+          
+          # 将 main 分支合并到当前 zh-CN 分支
+          # --no-edit: 不打开编辑器，直接使用默认合并信息
+          # --strategy-option=theirs: 遇到冲突时优先采用 main 分支的版本
+          # || true: 即使合并失败也继续执行后续命令（避免工作流终止）
           git merge origin/main --no-edit --strategy-option=theirs || true
+          
+          # 强制恢复 zh-CN 分支自己的 .github 目录配置
+          # 确保工作流、CI 配置等保持中文分支的特定设置
           git checkout HEAD -- .github/
+          
+          # 推送合并后的更改到 zh-CN 分支
           git push origin zh-CN
 
+      # 第四步：如果前面步骤失败，创建 Issue 通知
       - name: Open issue on conflict
+        # 仅当上一步失败时执行此步骤
         if: failure()
         uses: actions/github-script@v7
         with:
           script: |
+            # 调用 GitHub API 创建新 Issue
             github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: '⚠️ zh-CN 合并冲突，需要手动处理',
-              body: 'main 分支更新后自动合并到 zh-CN 失败，请手动解决冲突后推送。'
+              body: 'main 分支更新后自动合并到 zh-CN 失败，请手动解决冲突后推送。\n\n工作流程运行ID: ' + context.runId
             })
