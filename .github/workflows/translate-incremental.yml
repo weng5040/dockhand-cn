@@ -1,0 +1,234 @@
+# ============================================================
+# Workflow 名称：增量自动翻译
+# 功能说明：
+#   当 main 分支同步上游更新后，自动检测 zh-CN 分支中
+#   哪些 .svelte 文件发生了变化，只翻译新增/修改的英文文本。
+#
+# 触发方式：
+#   - 自动：main 分支有推送时触发（上游同步后）
+#   - 手动：可在 GitHub Actions 页面手动触发，并指定要翻译的文件
+#
+# 前置条件：
+#   在仓库 Settings → Secrets → Actions 中添加：
+#   DEEPL_API_KEY = 你的 DeepL Free API Key
+#
+# 工作逻辑：
+#   1. 检出 zh-CN 分支
+#   2. 与 main 分支对比，找出变动的 .svelte 文件
+#   3. 对变动文件中新增的英文文本调用 DeepL 翻译
+#   4. 如有翻译结果，自动 commit 到 zh-CN 分支
+#   5. 触发 Docker 镜像重新构建
+# ============================================================
+
+name: 增量自动翻译
+
+on:
+  # main 分支推送时触发（即上游同步后）
+  push:
+    branches: [main]
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      target_files:
+        description: '指定要翻译的文件（逗号分隔，留空则自动检测变动文件）'
+        required: false
+        default: ''
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -------------------------------------------------------
+      # 步骤 1：检出 zh-CN 分支
+      # -------------------------------------------------------
+      - name: 检出 zh-CN 分支
+        uses: actions/checkout@v5
+        with:
+          ref: zh-CN
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # -------------------------------------------------------
+      # 步骤 2：安装依赖
+      # -------------------------------------------------------
+      - name: 安装 Python 依赖
+        run: pip install deepl
+
+      # -------------------------------------------------------
+      # 步骤 3：检测变动文件
+      # -------------------------------------------------------
+      - name: 检测变动的 .svelte 文件
+        id: detect
+        run: |
+          # 如果手动指定了文件，直接使用
+          if [ -n "${{ github.event.inputs.target_files }}" ]; then
+            CHANGED_FILES=$(echo "${{ github.event.inputs.target_files }}" | tr ',' '\n')
+            echo "📋 手动指定文件："
+            echo "$CHANGED_FILES"
+          else
+            # 获取 main 分支最新 commit
+            git fetch origin main
+            MAIN_HEAD=$(git rev-parse origin/main)
+            ZH_HEAD=$(git rev-parse HEAD)
+
+            # 找出 main 相对于 zh-CN 公共祖先之后变动的 .svelte 文件
+            MERGE_BASE=$(git merge-base $ZH_HEAD origin/main)
+            CHANGED_FILES=$(git diff --name-only $MERGE_BASE origin/main -- 'src/**/*.svelte' 2>/dev/null || echo '')
+
+            if [ -z "$CHANGED_FILES" ]; then
+              echo "ℹ️  没有检测到变动的 .svelte 文件，跳过翻译"
+              echo "has_changes=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            echo "📋 检测到以下变动文件："
+            echo "$CHANGED_FILES"
+          fi
+
+          echo "has_changes=true" >> $GITHUB_OUTPUT
+          # 保存文件列表
+          echo "$CHANGED_FILES" > /tmp/changed_files.txt
+          echo "changed_count=$(echo "$CHANGED_FILES" | wc -l)" >> $GITHUB_OUTPUT
+
+      # -------------------------------------------------------
+      # 步骤 4：执行增量翻译
+      # -------------------------------------------------------
+      - name: 执行增量翻译
+        if: steps.detect.outputs.has_changes == 'true'
+        env:
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+        run: |
+          cat << 'PYEOF' > /tmp/translate_incremental.py
+          import os, re, sys, deepl
+
+          api_key = os.environ.get('DEEPL_API_KEY', '')
+          if not api_key:
+              print('❌ 错误：未找到 DEEPL_API_KEY')
+              sys.exit(1)
+
+          translator = deepl.Translator(api_key)
+          usage = translator.get_usage()
+          print(f'📊 DeepL 用量：{usage.character.count:,} / {usage.character.limit:,} 字符')
+
+          # 读取要翻译的文件列表
+          with open('/tmp/changed_files.txt') as f:
+              target_files = [l.strip() for l in f if l.strip() and l.strip().endswith('.svelte')]
+
+          # 跳过 shadcn UI 组件库（无需翻译）
+          target_files = [f for f in target_files if 'components/ui' not in f]
+
+          print(f'\n🎯 待翻译文件数：{len(target_files)}')
+
+          total_translated = 0
+
+          for filepath in target_files:
+              if not os.path.exists(filepath):
+                  print(f'  ⚠️  文件不存在，跳过：{filepath}')
+                  continue
+
+              with open(filepath, 'r', encoding='utf-8') as f:
+                  content = f.read()
+
+              # 分离 <script> 标签，只处理模板部分
+              script_pattern = re.compile(r'<script[^>]*>.*?</script>', re.DOTALL)
+              scripts = script_pattern.findall(content)
+              template = script_pattern.sub('__SCRIPT_PLACEHOLDER__', content)
+
+              # 匹配标签之间的英文文本
+              text_pattern = re.compile(
+                  r'(>\s*)([A-Z][a-zA-Z\s,\'\-]{3,}[a-zA-Z!?])(\s*[<{])'
+              )
+              matches = text_pattern.findall(template)
+              english_texts = list(set([
+                  m[1].strip() for m in matches
+                  if not re.search(r'[\u4e00-\u9fff]', m[1])  # 未翻译
+                  and len(m[1].strip()) > 3
+                  and not m[1].strip().startswith('{')
+                  and not m[1].strip().startswith('//')
+              ]))
+
+              # 匹配 placeholder、title、aria-label 等属性中的英文
+              attr_pattern = re.compile(
+                  r'(?:placeholder|title|aria-label|alt|label)=["\']([A-Z][a-zA-Z\s\'\-,!?]{3,})["\']'
+              )
+              attr_matches = attr_pattern.findall(template)
+              english_texts += [
+                  t for t in attr_matches
+                  if not re.search(r'[\u4e00-\u9fff]', t)
+                  and t not in english_texts
+              ]
+
+              if not english_texts:
+                  print(f'  ✓ {filepath}（无新增英文文本）')
+                  continue
+
+              print(f'\n  📄 {filepath}（{len(english_texts)} 处文本）')
+
+              try:
+                  results = translator.translate_text(
+                      english_texts,
+                      source_lang='EN',
+                      target_lang='ZH',
+                  )
+                  translation_map = {
+                      english_texts[i]: results[i].text
+                      for i in range(len(english_texts))
+                  }
+
+                  new_template = template
+                  for en, zh in translation_map.items():
+                      if en == zh:
+                          continue
+                      # 替换标签文本
+                      new_template = new_template.replace(f'>{en}<', f'>{zh}<')
+                      new_template = new_template.replace(f'>\n\t\t\t\t\t\t{en}\n', f'>\n\t\t\t\t\t\t{zh}\n')
+                      # 替换属性文本
+                      for attr in ['placeholder', 'title', 'aria-label', 'alt', 'label']:
+                          new_template = new_template.replace(
+                              f'{attr}="{en}"', f'{attr}="{zh}"'
+                          ).replace(
+                              f"{attr}='{en}'", f"{attr}='{zh}'"
+                          )
+                      print(f'     ✅ "{en}" → "{zh}"')
+                      total_translated += 1
+
+                  # 还原 script 标签
+                  for script in scripts:
+                      new_template = new_template.replace('__SCRIPT_PLACEHOLDER__', script, 1)
+
+                  if new_template != content:
+                      with open(filepath, 'w', encoding='utf-8') as f:
+                          f.write(new_template)
+
+              except Exception as e:
+                  print(f'     ⚠️  翻译出错：{e}')
+
+          print(f'\n✅ 增量翻译完成，共翻译 {total_translated} 处文本')
+          PYEOF
+          python3 /tmp/translate_incremental.py
+
+      # -------------------------------------------------------
+      # 步骤 5：提交翻译结果
+      # -------------------------------------------------------
+      - name: 提交翻译结果
+        if: steps.detect.outputs.has_changes == 'true'
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions [DeepL]"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "ℹ️  翻译后无文件变更（可能文本已是中文）"
+          else
+            FILES=$(git diff --cached --name-only | tr '\n' ' ')
+            git commit -m "i18n: DeepL 增量翻译 [自动] ${FILES}"
+            git push origin zh-CN
+            echo "✅ 翻译结果已提交"
+          fi

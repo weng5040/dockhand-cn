@@ -1,0 +1,214 @@
+# ============================================================
+# Workflow 名称：全量翻译（一次性）
+# 功能说明：
+#   手动触发，使用 DeepL API 翻译 zh-CN 分支中所有
+#   src/ 目录下的 .svelte 文件，将英文界面文本替换为中文。
+#
+# 使用场景：
+#   - 首次建立 zh-CN 分支后进行初始化翻译
+#   - 需要重新全量翻译时手动触发
+#
+# 前置条件：
+#   在仓库 Settings → Secrets → Actions 中添加：
+#   DEEPL_API_KEY = 你的 DeepL Free API Key
+#     申请地址：https://www.deepl.com/pro-api （免费版）
+#
+# 注意事项：
+#   - DeepL Free 每月限额 50 万字符，全量翻译约消耗 1-5 万字符
+#   - 只翻译 HTML 模板部分的可见文本，不改动 JS/TS 逻辑代码
+#   - 已是中文的内容不会重复发送给 API
+#   - 翻译结果直接 commit 到 zh-CN 分支并触发 Docker 构建
+# ============================================================
+
+name: 全量翻译（手动触发）
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '试运行（只打印要翻译的内容，不实际修改文件）'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -------------------------------------------------------
+      # 步骤 1：检出 zh-CN 分支代码
+      # -------------------------------------------------------
+      - name: 检出 zh-CN 分支
+        uses: actions/checkout@v5
+        with:
+          ref: zh-CN
+          fetch-depth: 1
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # -------------------------------------------------------
+      # 步骤 2：安装 Python 依赖
+      # -------------------------------------------------------
+      - name: 安装 Python 依赖
+        run: pip install deepl requests
+
+      # -------------------------------------------------------
+      # 步骤 3：执行全量翻译脚本
+      # -------------------------------------------------------
+      - name: 执行全量翻译
+        env:
+          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+          DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          cat << 'PYEOF' > /tmp/translate_full.py
+          import os, re, sys, deepl
+
+          api_key = os.environ.get('DEEPL_API_KEY', '')
+          dry_run = os.environ.get('DRY_RUN', 'false').lower() == 'true'
+
+          if not api_key:
+              print('❌ 错误：未找到 DEEPL_API_KEY，请在仓库 Secrets 中添加')
+              sys.exit(1)
+
+          translator = deepl.Translator(api_key)
+
+          # 检查 API 用量
+          usage = translator.get_usage()
+          print(f'📊 DeepL 用量：{usage.character.count:,} / {usage.character.limit:,} 字符')
+
+          # 匹配 Svelte 模板中的英文文本
+          # 规则：在 HTML 标签之间、或属性值中出现的英文文本
+          # 排除：代码块、注释、已有中文的内容、纯标点/数字
+          ENGLISH_PATTERN = re.compile(
+              r'(?<![{\[])([A-Z][a-z]{2,}(?:[\s]+[a-zA-Z]{2,}){0,8})(?![}\]])'
+          )
+
+          # 需要跳过的文件（已手动翻译或无需翻译）
+          SKIP_FILES = {
+              'src/routes/+layout.svelte',  # 已手动翻译
+          }
+
+          # 收集所有 .svelte 文件
+          svelte_files = []
+          for root, dirs, files in os.walk('src'):
+              # 跳过 lib/components/ui 目录（shadcn 组件，不需要翻译）
+              dirs[:] = [d for d in dirs if d not in ['node_modules', '.svelte-kit']]
+              if 'components/ui' in root:
+                  continue
+              for f in files:
+                  if f.endswith('.svelte'):
+                      path = os.path.join(root, f)
+                      if path not in SKIP_FILES:
+                          svelte_files.append(path)
+
+          print(f'\n📁 找到 {len(svelte_files)} 个 .svelte 文件')
+
+          total_translated = 0
+          total_chars = 0
+
+          for filepath in sorted(svelte_files):
+              with open(filepath, 'r', encoding='utf-8') as f:
+                  content = f.read()
+
+              # 提取 <script> 标签之外的模板部分
+              # 分离 script 和 template
+              script_pattern = re.compile(r'<script[^>]*>.*?</script>', re.DOTALL)
+              scripts = script_pattern.findall(content)
+              template = script_pattern.sub('__SCRIPT_PLACEHOLDER__', content)
+
+              # 找出模板中的英文文本节点（标签之间的文字）
+              text_pattern = re.compile(
+                  r'(>\s*)([A-Z][a-zA-Z\s]{3,}[a-zA-Z])(\s*[<{])',
+              )
+
+              matches = text_pattern.findall(template)
+              english_texts = list(set([
+                  m[1].strip() for m in matches
+                  if not re.search(r'[\u4e00-\u9fff]', m[1])  # 排除已有中文
+                  and len(m[1].strip()) > 3
+                  and not m[1].strip().startswith('{')
+              ]))
+
+              if not english_texts:
+                  continue
+
+              print(f'\n  📄 {filepath} ({len(english_texts)} 处文本)')
+              if dry_run:
+                  for t in english_texts[:5]:
+                      print(f'     - "{t}"')
+                  if len(english_texts) > 5:
+                      print(f'     ... 还有 {len(english_texts)-5} 处')
+                  continue
+
+              # 批量翻译，减少 API 调用次数
+              try:
+                  char_count = sum(len(t) for t in english_texts)
+                  total_chars += char_count
+                  results = translator.translate_text(
+                      english_texts,
+                      source_lang='EN',
+                      target_lang='ZH',
+                  )
+                  translation_map = {
+                      english_texts[i]: results[i].text
+                      for i in range(len(english_texts))
+                  }
+
+                  # 替换模板中的英文文本
+                  new_template = template
+                  for en, zh in translation_map.items():
+                      if en != zh:  # 避免替换没有变化的文本
+                          new_template = new_template.replace(
+                              f'>{en}<', f'>{zh}<'
+                          ).replace(
+                              f'>{en} ', f'>{zh} '
+                          ).replace(
+                              f' {en}<', f' {zh}<'
+                          )
+                          print(f'     ✅ "{en}" → "{zh}"')
+                          total_translated += 1
+
+                  # 还原 script 标签
+                  for script in scripts:
+                      new_template = new_template.replace(
+                          '__SCRIPT_PLACEHOLDER__', script, 1
+                      )
+
+                  if new_template != content:
+                      with open(filepath, 'w', encoding='utf-8') as f:
+                          f.write(new_template)
+
+              except Exception as e:
+                  print(f'     ⚠️  翻译失败：{e}')
+
+          print(f'\n✅ 翻译完成！')
+          print(f'   共翻译 {total_translated} 处文本，消耗约 {total_chars:,} 字符')
+          PYEOF
+          python3 /tmp/translate_full.py
+
+      # -------------------------------------------------------
+      # 步骤 4：提交翻译结果
+      # -------------------------------------------------------
+      - name: 提交翻译结果
+        if: github.event.inputs.dry_run == 'false'
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions [DeepL]"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "ℹ️  没有文件变更，无需提交"
+          else
+            CHANGED=$(git diff --cached --name-only | wc -l)
+            git commit -m "i18n: DeepL 全量翻译 ${CHANGED} 个文件 [自动]"
+            git push origin zh-CN
+            echo "✅ 已提交并推送翻译结果"
+          fi
