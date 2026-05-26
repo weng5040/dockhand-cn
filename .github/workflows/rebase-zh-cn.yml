@@ -1,0 +1,42 @@
+name: Merge main into zh-CN
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: zh-CN
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+      - name: Merge main, keep zh-CN's .github
+        run: |
+          git fetch origin main
+          git merge origin/main --no-edit --strategy-option=theirs || true
+          git checkout HEAD -- .github/
+          git push origin zh-CN
+
+      - name: Open issue on conflict
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '⚠️ zh-CN 合并冲突，需要手动处理',
+              body: 'main 分支更新后自动合并到 zh-CN 失败，请手动解决冲突后推送。'
+            })
