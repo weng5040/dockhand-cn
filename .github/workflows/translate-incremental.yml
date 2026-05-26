@@ -1,13 +1,4 @@
-# ============================================================
-# Workflow: 增量自动翻译
-# 功能: main 分支同步上游后，自动翻译变动的 .svelte 文件
-# 引擎: OpenAI 兼容接口
-#
-# 需要在仓库 Secrets 中添加：
-#   AI_API_KEY / AI_BASE_URL / AI_MODEL
-# ============================================================
-
-name: 增量自动翻译
+name: Translate Incremental (Auto)
 
 on:
   push:
@@ -15,12 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       target_files:
-        description: '手动指定要翻译的文件（逗号分隔，留空则自动检测变动文件）'
+        description: 'Comma-separated files to translate (leave empty to auto-detect changed files)'
         required: false
         default: ''
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
   contents: write
@@ -29,125 +17,135 @@ jobs:
   translate:
     runs-on: ubuntu-latest
     steps:
-      - name: 检出 zh-CN 分支
-        uses: actions/checkout@v5
+      - name: Checkout zh-CN
+        uses: actions/checkout@v4
         with:
           ref: zh-CN
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 安装 Python 依赖
+      - name: Install dependencies
         run: pip install openai
 
-      - name: 检测变动的 .svelte 文件
+      - name: Detect changed .svelte files
         id: detect
         run: |
           if [ -n "${{ github.event.inputs.target_files }}" ]; then
             echo "${{ github.event.inputs.target_files }}" | tr ',' '\n' > /tmp/changed_files.txt
-            echo "手动指定文件："
+            echo "Manual target files:"
             cat /tmp/changed_files.txt
           else
             git fetch origin main
             MERGE_BASE=$(git merge-base HEAD origin/main)
-            git diff --name-only $MERGE_BASE origin/main -- 'src/**/*.svelte' > /tmp/changed_files.txt
-
+            git diff --name-only "$MERGE_BASE" origin/main -- 'src/**/*.svelte' > /tmp/changed_files.txt
             if [ ! -s /tmp/changed_files.txt ]; then
-              echo "没有检测到变动的 .svelte 文件，跳过翻译"
+              echo "No changed .svelte files detected, skipping."
               echo "has_changes=false" >> $GITHUB_OUTPUT
               exit 0
             fi
-            echo "检测到变动文件："
+            echo "Changed files:"
             cat /tmp/changed_files.txt
           fi
           echo "has_changes=true" >> $GITHUB_OUTPUT
 
-      - name: 执行增量翻译
+      - name: Write translate script
         if: steps.detect.outputs.has_changes == 'true'
-        env:
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
-          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
-          AI_MODEL: ${{ secrets.AI_MODEL }}
         run: |
-          cat << 'PYEOF' > /tmp/translate_incremental.py
+          python3 - <<'PYEOF'
+          import os
+          script = r"""
           import os, re, sys
           from openai import OpenAI
 
-          api_key  = os.environ['AI_API_KEY']
-          base_url = os.environ['AI_BASE_URL'].rstrip('/') + '/v1'
-          model    = os.environ['AI_MODEL']
+          api_key  = os.environ.get('AI_API_KEY', '')
+          base_url = os.environ.get('AI_BASE_URL', '').rstrip('/') + '/v1'
+          model    = os.environ.get('AI_MODEL', '')
+
+          if not api_key:
+              print('ERROR: AI_API_KEY is empty')
+              sys.exit(1)
 
           client = OpenAI(api_key=api_key, base_url=base_url)
 
-          SYSTEM_PROMPT = """你是一个专业的 Docker 管理面板汉化专家。
-          任务：将 Svelte 组件模板中的英文界面文本翻译成中文。
-          规则：
-          1. 只翻译可见的 UI 文本（按钮、标签、标题、提示语等）
-          2. 保留所有 HTML 标签、Svelte 语法（{#if} {#each} {@render} 等）、变量插值 {variable} 原封不动
-          3. 技术术语参考：Container→容器、Stack→应用栈、Volume→数据卷、Network→网络、Image→镜像、Registry→镜像仓库、Dashboard→仪表盘、Environment→环境、Schedule→定时任务、Audit→审计、Terminal→终端
-          4. 直接返回翻译后的完整文件内容，不要加任何解释或代码块标记"""
+          SYSTEM_PROMPT = (
+              'You are a Docker management panel localization expert. '
+              'Translate English UI text in Svelte files to Simplified Chinese. '
+              'Rules: '
+              '1. Only translate visible UI text (buttons, labels, titles, placeholders). '
+              '2. Keep ALL HTML tags, Svelte syntax ({#if}{#each}{@render} etc), and {variable} interpolations unchanged. '
+              '3. Terms: Container->\u5bb9\u5668, Stack->\u5e94\u7528\u6808, Volume->\u6570\u636e\u5377, Network->\u7f51\u7edc, '
+              'Image->\u955c\u50cf, Registry->\u955c\u50cf\u4ed3\u5e93, Dashboard->\u4eea\u8868\u76d8, Environment->\u73af\u5883, '
+              'Schedule->\u5b9a\u65f6\u4efb\u52a1, Audit->\u5ba1\u8ba1, Terminal->\u7ec8\u7aef, Deploy->\u90e8\u7f72. '
+              '4. Return ONLY the translated file content. No explanations. No markdown fences.'
+          )
 
           with open('/tmp/changed_files.txt') as f:
-              target_files = [
-                  l.strip() for l in f
-                  if l.strip().endswith('.svelte') and 'components/ui' not in l
-              ]
+              targets = [l.strip() for l in f if l.strip().endswith('.svelte') and 'components/ui' not in l]
 
-          print(f'待翻译文件数：{len(target_files)}')
-          EN_TEXT_RE = re.compile(r'>\s*[A-Z][a-zA-Z\s]{3,}[a-zA-Z]\s*[<{]')
-          translated_count = 0
+          print(f'Files to translate: {len(targets)}')
+          EN_TEXT_RE = re.compile(r'>\s*[A-Z][a-zA-Z ]{3,}[a-zA-Z]\s*[<{]')
+          count = 0
 
-          for filepath in target_files:
+          for filepath in targets:
               if not os.path.exists(filepath):
-                  print(f'  ⚠️  文件不存在，跳过：{filepath}')
+                  print(f'  missing: {filepath}')
                   continue
-
               with open(filepath, encoding='utf-8') as f:
                   content = f.read()
-
               if not EN_TEXT_RE.search(content):
-                  print(f'  ✓ 无英文文本，跳过：{filepath}')
+                  print(f'  skip (no EN text): {filepath}')
                   continue
-
-              print(f'  → 翻译：{filepath}')
+              print(f'  -> {filepath}')
               try:
                   resp = client.chat.completions.create(
                       model=model,
                       messages=[
                           {'role': 'system', 'content': SYSTEM_PROMPT},
-                          {'role': 'user', 'content': f'请翻译以下 Svelte 文件：\n\n{content}'}
+                          {'role': 'user', 'content': 'Translate this Svelte file:\n\n' + content}
                       ],
                       temperature=0.1,
                   )
-                  translated = resp.choices[0].message.content.strip()
-                  translated = re.sub(r'^```[\w]*\n?', '', translated)
-                  translated = re.sub(r'\n?```$', '', translated)
-
-                  if translated and translated != content:
+                  out = resp.choices[0].message.content.strip()
+                  out = re.sub(r'^```[\w]*\n?', '', out)
+                  out = re.sub(r'\n?```$', '', out)
+                  if out and out != content:
                       with open(filepath, 'w', encoding='utf-8') as f:
-                          f.write(translated)
-                      translated_count += 1
-                      print(f'     ✅ 完成')
+                          f.write(out)
+                      count += 1
+                      print('     OK')
                   else:
-                      print(f'     ⚠️  内容未变化')
-
+                      print('     no change')
               except Exception as e:
-                  print(f'     ❌ 失败：{e}')
+                  print(f'     FAIL: {e}')
 
-          print(f'\n增量翻译完成，共翻译 {translated_count} 个文件')
+          print(f'Done. Translated {count} files.')
+          """
+          import textwrap
+          script = textwrap.dedent(script)
+          with open('/tmp/translate_inc.py', 'w') as f:
+              f.write(script)
+          print('Script written.')
           PYEOF
-          python3 /tmp/translate_incremental.py
 
-      - name: 提交翻译结果
+      - name: Run translate script
+        if: steps.detect.outputs.has_changes == 'true'
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+        run: python3 /tmp/translate_inc.py
+
+      - name: Commit results
         if: steps.detect.outputs.has_changes == 'true'
         run: |
           git config user.email "actions@github.com"
-          git config user.name "GitHub Actions [AI 翻译]"
+          git config user.name "GitHub Actions [i18n]"
           git add -A
           if git diff --cached --quiet; then
-            echo "无文件变更"
+            echo "No changes to commit"
           else
             FILES=$(git diff --cached --name-only | tr '\n' ' ')
-            git commit -m "i18n: AI 增量汉化 [自动] ${FILES}"
+            git commit -m "i18n: incremental translate [bot] ${FILES}"
             git push origin zh-CN
-            echo "✅ 已提交"
+            echo "Done."
           fi

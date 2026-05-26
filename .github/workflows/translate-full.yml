@@ -1,17 +1,14 @@
-name: 全量
+name: Translate Full (Manual)
 
-于:
+on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: '试运行（仅打印计划翻译的内容，不修改文件）'
+        description: 'Dry run: print plan only, no file changes'
         required: false
-        默认: 'false'
-        输入: choice
+        default: 'false'
+        type: choice
         options: ['false', 'true']
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 permissions:
   contents: write
@@ -20,115 +17,107 @@ jobs:
   translate:
     runs-on: ubuntu-latest
     steps:
-      - name: 检出 zh-CN 分支
-        uses: actions/checkout@v5
+      - name: Checkout zh-CN
+        uses: actions/checkout@v4
         with:
           ref: zh-CN
           fetch-depth: 1
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 安装 Python 依赖
+      - name: Install dependencies
         run: pip install openai
 
-      # 将 Python 脚本写入文件（不用 heredoc，避免缩进问题）
-      - name: 写入翻译脚本
+      - name: Write translate script
         run: |
-          cat > /tmp/translate_full.py << 'EOF'
-          # placeholder
-          EOF
+          python3 - <<'PYEOF'
+          import os
+          script = r"""
+          import os, re, sys
+          from openai import OpenAI
 
-          # 直接用 Python 内嵌内容写入，避免 shell heredoc 缩进问题
-          python3 - << 'PYEOF'
-import textwrap, os
-script = textwrap.dedent('''
-import os, re, sys
-from openai import OpenAI
+          api_key  = os.environ.get('AI_API_KEY', '')
+          base_url = os.environ.get('AI_BASE_URL', '').rstrip('/') + '/v1'
+          model    = os.environ.get('AI_MODEL', '')
+          dry_run  = os.environ.get('DRY_RUN', 'false').lower() == 'true'
 
-api_key  = os.environ.get("AI_API_KEY", "")
-base_url = os.environ.get("AI_BASE_URL", "").rstrip("/") + "/v1"
-model    = os.environ.get("AI_MODEL", "")
-dry_run  = os.environ.get("DRY_RUN", "false").lower() == "true"
+          if not api_key:
+              print('ERROR: AI_API_KEY is empty')
+              sys.exit(1)
 
-if not api_key:
-    print("ERROR: AI_API_KEY is empty")
-    sys.exit(1)
+          client = OpenAI(api_key=api_key, base_url=base_url)
+          print(f'Model: {model}')
 
-client = OpenAI(api_key=api_key, base_url=base_url)
+          SYSTEM_PROMPT = (
+              'You are a Docker management panel localization expert. '
+              'Translate English UI text in Svelte files to Simplified Chinese. '
+              'Rules: '
+              '1. Only translate visible UI text (buttons, labels, titles, placeholders). '
+              '2. Keep ALL HTML tags, Svelte syntax ({#if}{#each}{@render} etc), and {variable} interpolations unchanged. '
+              '3. Terms: Container->\u5bb9\u5668, Stack->\u5e94\u7528\u6808, Volume->\u6570\u636e\u5377, Network->\u7f51\u7edc, '
+              'Image->\u955c\u50cf, Registry->\u955c\u50cf\u4ed3\u5e93, Dashboard->\u4eea\u8868\u76d8, Environment->\u73af\u5883, '
+              'Schedule->\u5b9a\u65f6\u4efb\u52a1, Audit->\u5ba1\u8ba1, Terminal->\u7ec8\u7aef, Deploy->\u90e8\u7f72. '
+              '4. Return ONLY the translated file content. No explanations. No markdown fences.'
+          )
 
-SYSTEM_PROMPT = (
-    "\u4f60\u662f\u4e00\u4e2a\u4e13\u4e1a\u7684 Docker \u7ba1\u7406\u9762\u677f\u6c49\u5316\u4e13\u5bb6\u3002\n"
-    "\u4efb\u52a1\uff1a\u5c06 Svelte \u7ec4\u4ef6\u6a21\u677f\u4e2d\u7684\u82f1\u6587\u754c\u9762\u6587\u672c\u7ffb\u8bd1\u6210\u4e2d\u6587\u3002\n"
-    "\u89c4\u5219\uff1a\n"
-    "1. \u53ea\u7ffb\u8bd1\u53ef\u89c1\u7684 UI \u6587\u672c\uff08\u6309\u94ae\u3001\u6807\u7b7e\u3001\u6807\u9898\u3001\u63d0\u793a\u8bed\u7b49\uff09\n"
-    "2. \u4fdd\u7559\u6240\u6709 HTML \u6807\u7b7e\u3001Svelte \u8bed\u6cd5\uff08{#if} {#each} {@render} \u7b49\uff09\u3001\u53d8\u91cf\u63d2\u503c {variable} \u539f\u5c01\u4e0d\u52a8\n"
-    "3. \u6280\u672f\u672f\u8bed\uff1aContainer->\u5bb9\u5668,Stack->\u5e94\u7528\u6808,Volume->\u6570\u636e\u5377,Network->\u7f51\u7edc,"
-    "Image->\u955c\u50cf,Registry->\u955c\u50cf\u4ed3\u5e93,Dashboard->\u4eea\u8868\u76d8,Environment->\u73af\u5883,"
-    "Schedule->\u5b9a\u65f6\u4efb\u52a1,Audit->\u5ba1\u8ba1,Terminal->\u7ec8\u7aef\n"
-    "4. \u76f4\u63a5\u8fd4\u56de\u7ffb\u8bd1\u540e\u7684\u5b8c\u6574\u6587\u4ef6\u5185\u5bb9\uff0c\u4e0d\u8981\u52a0\u4efb\u4f55\u89e3\u91ca\u6216\u4ee3\u7801\u5757\u6807\u8bb0"
-)
+          SKIP_FILES = {'src/routes/+layout.svelte'}
+          # Only scan src/, never touch .github/ or config files
+          svelte_files = []
+          for root, dirs, files in os.walk('src'):
+              dirs[:] = [d for d in dirs if d not in ['node_modules', '.svelte-kit']]
+              if 'components/ui' in root:
+                  continue
+              for f in files:
+                  if f.endswith('.svelte'):
+                      path = os.path.join(root, f)
+                      if path not in SKIP_FILES:
+                          svelte_files.append(path)
 
-SKIP_FILES = {"src/routes/+layout.svelte"}
+          print(f'Found {len(svelte_files)} .svelte files')
+          EN_TEXT_RE = re.compile(r'>\s*[A-Z][a-zA-Z ]{3,}[a-zA-Z]\s*[<{]')
+          count = 0
 
-svelte_files = []
-for root, dirs, files in os.walk("src"):
-    dirs[:] = [d for d in dirs if d not in ["node_modules", ".svelte-kit"]]
-    if "components/ui" in root:
-        continue
-    for f in files:
-        if f.endswith(".svelte"):
-            path = os.path.join(root, f)
-            if path not in SKIP_FILES:
-                svelte_files.append(path)
+          for filepath in sorted(svelte_files):
+              with open(filepath, encoding='utf-8') as f:
+                  content = f.read()
+              if not EN_TEXT_RE.search(content):
+                  print(f'  skip: {filepath}')
+                  continue
+              print(f'  -> {filepath}')
+              if dry_run:
+                  continue
+              try:
+                  resp = client.chat.completions.create(
+                      model=model,
+                      messages=[
+                          {'role': 'system', 'content': SYSTEM_PROMPT},
+                          {'role': 'user', 'content': 'Translate this Svelte file:\n\n' + content}
+                      ],
+                      temperature=0.1,
+                  )
+                  out = resp.choices[0].message.content.strip()
+                  out = re.sub(r'^```[\w]*\n?', '', out)
+                  out = re.sub(r'\n?```$', '', out)
+                  if out and out != content:
+                      with open(filepath, 'w', encoding='utf-8') as f:
+                          f.write(out)
+                      count += 1
+                      print('     OK')
+                  else:
+                      print('     no change')
+              except Exception as e:
+                  print(f'     FAIL: {e}')
 
-print(f"\u627e\u5230 {len(svelte_files)} \u4e2a .svelte \u6587\u4ef6")
+          print(f'Done. Translated {count} files.')
+          """
+          # dedent to remove leading spaces caused by YAML indentation
+          import textwrap
+          script = textwrap.dedent(script)
+          with open('/tmp/translate_full.py', 'w') as f:
+              f.write(script)
+          print('Script written to /tmp/translate_full.py')
+          PYEOF
 
-EN_TEXT_RE = re.compile(r">\\s*[A-Z][a-zA-Z\\s]{3,}[a-zA-Z]\\s*[<{]")
-translated_count = 0
-
-for filepath in sorted(svelte_files):
-    with open(filepath, encoding="utf-8") as f:
-        content = f.read()
-
-    if not EN_TEXT_RE.search(content):
-        print(f"  skip (no EN text): {filepath}")
-        continue
-
-    print(f"  translating: {filepath}")
-    if dry_run:
-        continue
-
-    try:
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"\u8bf7\u7ffb\u8bd1\u4ee5\u4e0b Svelte \u6587\u4ef6\uff1a\\n\\n{content}"}
-            ],
-            temperature=0.1,
-        )
-        translated = resp.choices[0].message.content.strip()
-        translated = re.sub(r"^```[\\w]*\\n?", "", translated)
-        translated = re.sub(r"\\n?```$", "", translated)
-
-        if translated and translated != content:
-            with open(filepath, "w", encoding="utf-8") as f:
-                f.write(translated)
-            translated_count += 1
-            print(f"     OK")
-        else:
-            print(f"     no change")
-
-    except Exception as e:
-        print(f"     FAIL: {e}")
-
-print(f"\ndone, translated {translated_count} files")
-''')
-with open("/tmp/translate_full.py", "w") as f:
-    f.write(script)
-print("script written")
-PYEOF
-
-      - name: 执行全量翻译
+      - name: Run translate script
         env:
           AI_API_KEY: ${{ secrets.AI_API_KEY }}
           AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
@@ -136,17 +125,17 @@ PYEOF
           DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: python3 /tmp/translate_full.py
 
-      - name: 提交翻译结果
+      - name: Commit results
         if: github.event.inputs.dry_run == 'false'
         run: |
           git config user.email "actions@github.com"
-          git config user.name "GitHub Actions [AI 翻译]"
+          git config user.name "GitHub Actions [i18n]"
           git add -A
           if git diff --cached --quiet; then
-            echo "没有文件变更"
+            echo "No changes to commit"
           else
             COUNT=$(git diff --cached --name-only | wc -l)
-            git commit -m "i18n: AI 全量汉化 ${COUNT} 个文件 [自动]"
+            git commit -m "i18n: auto translate ${COUNT} files [bot]"
             git push origin zh-CN
-            echo "✅ 已提交并推送"
+            echo "Done."
           fi
