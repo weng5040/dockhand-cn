@@ -20,42 +20,40 @@
 	import { shouldShowWhatsNew } from '$lib/utils/version';
 	import { AlertTriangle, Search } from 'lucide-svelte';
 
-	// Check if current route is login page (no sidebar needed)
+	// 判断当前路由是否为登录页（登录页不需要侵边栏）
 	const isLoginPage = $derived($page.url.pathname === '/login');
 
 	let { children } = $props();
 	let envId = $state<number | null>(null);
 	let commandPaletteOpen = $state(false);
 
-	// What's New modal state
+	// 新功能弹窗状态
 	let showWhatsNewModal = $state(false);
 	let changelog = $state<Array<{ version: string; date: string; changes: Array<{ type: string; text: string }> }>>([]);
 	let lastSeenVersion = $state<string | null>(null);
 
-	// App version from git tag (injected at build time)
+	// 应用版本（构建时通过 git tag 注入）
 	declare const __APP_VERSION__: string | null;
 	const currentVersion = __APP_VERSION__;
 
-	// Detect if Mac for keyboard hint
+	// 检测是否为 Mac（用于快捷键提示）
 	const isMac = typeof navigator !== 'undefined' && navigator.platform?.toUpperCase().indexOf('MAC') >= 0;
 
-	// Subscribe to environment changes using $effect
+	// 监听环境切换
 	$effect(() => {
 		const env = $currentEnvironment;
 		envId = env?.id ?? null;
 	});
 
-	// Initialize theme after auth state is known
+	// 认证状态确认后初始化主题
 	$effect(() => {
 		if (!$authStore.loading) {
-			// Use user-specific preferences if authenticated, otherwise global settings
 			const userId = $authStore.authEnabled && $authStore.user ? $authStore.user.id : undefined;
 			themeStore.init(userId);
 		}
 	});
 
-	// Refresh environments when user becomes authenticated
-	// This handles OIDC callback where login happens server-side
+	// 用户登录后刷新环境列表（处理 OIDC 回调的服务端登录）
 	let wasAuthenticated = $state(false);
 	$effect(() => {
 		if (!$authStore.loading && $authStore.authenticated && !wasAuthenticated) {
@@ -67,19 +65,19 @@
 	});
 
 	onMount(() => {
-		// Apply theme from localStorage immediately (for flash-free loading)
+		// 立即应用主题（防止闪烁）
 		applyTheme(themeStore.get());
 
-		// Initialize grid preferences
+		// 初始化表格布局偏好
 		gridPreferencesStore.init();
 
-		// Connect to SSE for real-time Docker events (global)
+		// 建立 SSE 连接，实时接收 Docker 事件
 		connectSSE(envId);
 
-		// Check enterprise license status
+		// 检查企业版许可证状态
 		licenseStore.check();
 
-		// Check auth status
+		// 检查认证状态
 		authStore.check();
 
 		return () => {
@@ -98,7 +96,7 @@
 						showWhatsNewModal = true;
 					}
 				} catch {
-					// Silently fail - don't show popup if changelog fetch fails
+					// 静默失败，获取 changelog 失败时不弹窗
 				}
 			}
 		}
@@ -111,7 +109,7 @@
 		}
 	}
 
-	// Show What's New only after auth resolves — avoids leaking version info on login page (#717)
+	// 认证完成后再显示新功能（避免在登录页泄露版本信息 #717）
 	let whatsNewChecked = false;
 	$effect(() => {
 		if (!whatsNewChecked && !$authStore.loading && (!$authStore.authEnabled || $authStore.authenticated)) {
@@ -123,15 +121,15 @@
 
 <svelte:head>
 	<link rel="icon" href="/logo_light.webp" />
-	<title>Dockhand - Docker Management</title>
+	<title>Dockhand - Docker 管理面板</title>
 </svelte:head>
 
 {#if isLoginPage}
-	<!-- Login page: no sidebar, no header -->
+	<!-- 登录页：无侵边栏和顶栏 -->
 	{@render children?.()}
 	<Toaster richColors position="bottom-right" />
 {:else}
-	<!-- Main app: full layout with sidebar -->
+	<!-- 主应用：带侵边栏的完整布局 -->
 	<SidebarProvider>
 		<AppSidebar />
 		<MainContent>
@@ -147,7 +145,7 @@
 						class="flex items-center gap-2 px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground border rounded-md hover:bg-muted/50 transition-colors"
 					>
 						<Search class="w-3.5 h-3.5" />
-						<span class="hidden sm:inline">Search...</span>
+						<span class="hidden sm:inline">搜索...</span>
 						<kbd class="pointer-events-none hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-2xs font-medium text-muted-foreground">
 							{#if isMac}
 								<span class="text-xs">⌘</span>
@@ -167,11 +165,11 @@
 						>
 							<AlertTriangle class="w-3.5 h-3.5" />
 							{#if $daysUntilExpiry <= 0}
-								License expired
+								许可证已过期
 							{:else if $daysUntilExpiry === 1}
-								License expires tomorrow
+								许可证明天到期
 							{:else}
-								License expires in {$daysUntilExpiry} days
+								许可证将在 {$daysUntilExpiry} 天后到期
 							{/if}
 						</a>
 					{/if}
