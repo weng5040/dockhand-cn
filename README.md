@@ -65,7 +65,7 @@ See [LICENSE.txt](LICENSE.txt) for full terms.
 ## Links
 
 - **Website**: [https://dockhand.pro](https://dockhand.pro)
-- **Documentation**: [https://dockhand.pro/manual](https://dockhand.pro/manual)
+- **文档**: [https://dockhand.pro/manual](https://dockhand.pro/manual)
 
 ---
 
@@ -76,4 +76,4 @@ This repository and its contents are explicitly prohibited from use in any AI, L
 For details, see license file.
 
 © 2025-2026 Finsys / Jarek Krochmalski
-CoolMe-Weng
+CoolMeWeng.
