@@ -16,7 +16,7 @@
 #   - 同步记录保存在 .github/LAST_SYNCED_RELEASE 文件中
 # ============================================================
 
-name: Sync Upstream (Release)
+name: 同步上游仓库（Finsys/dockhand） > main
 
 on:
   # 每 4 小时运行一次（UTC 时间：0、4、8、12、16、20 点）
