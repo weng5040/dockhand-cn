@@ -3,8 +3,7 @@
 # 功能说明：
 #   定期检查上游仓库（Finsys/dockhand）是否发布了新的 Release，
 #   若有新版本则自动将上游 main 分支同步到本仓库的 main 分支。
-#   同步策略为强制覆盖（force push），main 分支仅作为上游镜像使用，
-#   不在此分支上做任何自定义修改。
+#   同步策略为强制覆盖（force push），main 分支仅作为上游镜像使用。
 #
 # 触发方式：
 #   - 定时：每 4 小时自动检查一次（UTC 时间）
@@ -12,7 +11,8 @@
 #
 # 注意事项：
 #   - 本 workflow 文件存放在 zh-CN 分支，不会被上游覆盖
-#   - main 分支会被强制重置为上游内容，请勿在 main 分支上做修改
+#   - main 分支会被强制重置为上游内容，请勿在 main 分支上手动做修改
+#   - 同步后自动写回 .github/workflows/merge-to-zh-cn.yml，防止被覆盖
 #   - 同步记录保存在 .github/LAST_SYNCED_RELEASE 文件中
 # ============================================================
 
@@ -65,18 +65,11 @@ jobs:
         id: upstream
         run: |
           API_URL="https://api.github.com/repos/Finsys/dockhand/releases/latest"
-
-          # 调用 GitHub API 获取 Release 数据
           RESPONSE=$(curl -s -H "Accept: application/vnd.github+json" $API_URL)
-
-          # 解析 tag 名称和发布时间
           TAG_NAME=$(echo "$RESPONSE" | jq -r '.tag_name')
           PUBLISHED_AT=$(echo "$RESPONSE" | jq -r '.published_at')
-
-          # 将结果写入 GitHub Actions 输出变量
           echo "tag=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "published=$PUBLISHED_AT" >> $GITHUB_OUTPUT
-
           echo "🌐 上游最新 Release：$TAG_NAME（发布于 $PUBLISHED_AT）"
 
       # -------------------------------------------------------
@@ -92,7 +85,6 @@ jobs:
           else
             LAST_TAG="none"
           fi
-
           echo "tag=$LAST_TAG" >> $GITHUB_OUTPUT
           echo "📦 上次同步版本：$LAST_TAG"
 
@@ -117,8 +109,8 @@ jobs:
       #   1. 添加上游仓库为 remote
       #   2. fetch 上游最新代码
       #   3. 强制将 main 重置为上游 main（覆盖本地 main）
-      #   4. 在 reset 之后写入版本记录文件（避免被覆盖）
-      #   5. 提交版本记录并强制推送到 origin main
+      #   4. reset 完成后，写入版本记录和所需的 workflow 文件
+      #   5. 提交并强制推送到 origin main
       # -------------------------------------------------------
       - name: 同步上游代码到 main 分支
         if: steps.decide.outputs.sync == 'true'
@@ -129,15 +121,78 @@ jobs:
           # 拉取上游所有分支和 tag
           git fetch upstream
 
-          # 强制将本地 main 重置为上游 main（丢弃本地 main 的所有变更）
+          # 强制将本地 main 重置为上游 main
           git reset --hard upstream/main
 
-          # 在 reset 之后写入版本记录，确保不被上游内容覆盖
-          mkdir -p .github
+          # 在 reset 之后写入版本记录，确保不被覆盖
+          mkdir -p .github/workflows
           echo "${{ steps.upstream.outputs.tag }}" > .github/LAST_SYNCED_RELEASE
 
-          # 提交版本记录文件（若无变化则跳过）
-          git add .github/LAST_SYNCED_RELEASE
+          # 写回 merge-to-zh-cn.yml，防止被上游覆盖导致失效
+          # 该文件必须存在于 main 分支，才能监听 main 的 push 事件
+          cat > .github/workflows/merge-to-zh-cn.yml << 'EOF'
+          name: Merge main into zh-CN
+
+          on:
+            push:
+              branches: [main]
+            workflow_dispatch:
+
+          permissions:
+            contents: write
+            issues: write
+
+          jobs:
+            merge:
+              runs-on: ubuntu-latest
+
+              steps:
+                - name: 检出 zh-CN 分支
+                  uses: actions/checkout@v5
+                  with:
+                    fetch-depth: 0
+                    ref: zh-CN
+                    token: ${{ secrets.GITHUB_TOKEN }}
+
+                - name: 配置 Git 用户信息
+                  run: |
+                    git config user.email "actions@github.com"
+                    git config user.name "GitHub Actions"
+
+                - name: 将 main 最新内容合并到 zh-CN
+                  run: |
+                    git fetch origin main
+                    git merge origin/main --no-edit --strategy-option=theirs || true
+
+                - name: 保护 .github 目录不被覆盖
+                  run: |
+                    git checkout HEAD -- .github/
+
+                - name: 推送更新到 zh-CN 分支
+                  run: |
+                    git push origin zh-CN
+
+                - name: 合并失败时创建 Issue 通知
+                  if: failure()
+                  uses: actions/github-script@v7
+                  with:
+                    script: |
+                      await github.rest.issues.create({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        title: "\u26a0\ufe0f zh-CN \u5206\u652f\u5408\u5e76\u5931\u8d25\uff0c\u9700\u8981\u624b\u52a8\u5904\u7406",
+                        body:
+                          "\u81ea\u52a8\u5c06 main \u5408\u5e76\u5230 zh-CN \u65f6\u53d1\u751f\u9519\u8bef\u3002\n\n" +
+                          "\ud83d\udc49 \u67e5\u770b\u8be6\u7ec6\u65e5\u5fd7\uff1a" +
+                          context.serverUrl + "/" +
+                          context.repo.owner + "/" +
+                          context.repo.repo +
+                          "/actions/runs/" + context.runId
+                      });
+          EOF
+
+          # 提交两个文件
+          git add .github/LAST_SYNCED_RELEASE .github/workflows/merge-to-zh-cn.yml
           git commit -m "chore: sync upstream release ${{ steps.upstream.outputs.tag }}" || true
 
           # 强制推送到本仓库的 main 分支
