@@ -1,13 +1,13 @@
-name: 全量翻译（手动触发）
+name: 全量
 
-on:
+于:
   workflow_dispatch:
     inputs:
       dry_run:
         description: '试运行（仅打印计划翻译的内容，不修改文件）'
         required: false
-        default: 'false'
-        type: choice
+        默认: 'false'
+        输入: choice
         options: ['false', 'true']
 
 env:
