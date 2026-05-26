@@ -1,0 +1,113 @@
+# ============================================================
+# Workflow 名称：Docker Build & Push
+# 功能说明：
+#   当 zh-CN 分支有推送时，自动构建 Docker 镜像并发布到
+#   GitHub Container Registry (ghcr.io)。
+#
+# 镜像地址：
+#   ghcr.io/weng5040/dockhand-cn:latest
+#   ghcr.io/weng5040/dockhand-cn:zh-CN
+#   ghcr.io/weng5040/dockhand-cn:<版本号>  (若 VERSION 文件存在)
+#
+# 触发方式：
+#   - 自动：zh-CN 分支有任意推送时
+#   - 手动：可在 GitHub Actions 页面手动触发
+#
+# 注意事项：
+#   - 使用 GITHUB_TOKEN 登录 ghcr.io，无需额外配置 Secret
+#   - 镜像默认为 public，带有多个 tag 方便不同场景使用
+# ============================================================
+
+name: Docker Build & Push
+
+on:
+  # zh-CN 分支有推送时自动触发
+  push:
+    branches: [zh-CN]
+  # 允许在 GitHub Actions 页面手动触发
+  workflow_dispatch:
+
+permissions:
+  contents: read   # 读取仓库代码
+  packages: write  # 允许推送镜像到 ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -------------------------------------------------------
+      # 步骤 1：检出 zh-CN 分支代码
+      # -------------------------------------------------------
+      - name: 检出 zh-CN 分支
+        uses: actions/checkout@v5
+        with:
+          ref: zh-CN
+
+      # -------------------------------------------------------
+      # 步骤 2：读取版本号（来自 VERSION 文件）
+      # 若 VERSION 文件不存在，则使用 git 短 hash 作为版本号
+      # -------------------------------------------------------
+      - name: 读取版本号
+        id: version
+        run: |
+          if [ -f VERSION ]; then
+            VERSION=$(cat VERSION | tr -d '[:space:]')
+          else
+            VERSION=$(git rev-parse --short HEAD)
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📌 镜像版本号：$VERSION"
+
+      # -------------------------------------------------------
+      # 步骤 3：登录到 GitHub Container Registry (ghcr.io)
+      # 使用 GITHUB_TOKEN 自动鉴权，无需额外配置
+      # -------------------------------------------------------
+      - name: 登录 GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # -------------------------------------------------------
+      # 步骤 4：设置 Docker Buildx（支持多平台构建）
+      # -------------------------------------------------------
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # -------------------------------------------------------
+      # 步骤 5：构建并推送镜像
+      # 镜像 tag 说明：
+      #   :latest    → 始终指向最新构建
+      #   :zh-CN     → 表明这是中文版镜像
+      #   :<版本号> → 可回滁到指定版本
+      # -------------------------------------------------------
+      - name: 构建并推送 Docker 镜像
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:zh-CN
+            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+          # 启用构建缓存，加快重复构建速度
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # -------------------------------------------------------
+      # 步骤 6：输出镜像拉取命令，方便直接使用
+      # -------------------------------------------------------
+      - name: 输出镜像信息
+        run: |
+          echo ""
+          echo "✅ 镜像构建并推送成功！"
+          echo ""
+          echo "🚀 使用以下命令拉取镜像："
+          echo "   docker pull ghcr.io/${{ github.repository }}:latest"
+          echo ""
+          echo "📊 可用 tag："
+          echo "   :latest  → 最新版本"
+          echo "   :zh-CN   → 中文版"
+          echo "   :${{ steps.version.outputs.version }}  → 当前版本"
