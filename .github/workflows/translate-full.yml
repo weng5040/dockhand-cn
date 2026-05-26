@@ -1,23 +1,12 @@
 # ============================================================
-# Workflow 名称：全量翻译（一次性）
-# 功能说明：
-#   手动触发，使用 DeepL API 翻译 zh-CN 分支中所有
-#   src/ 目录下的 .svelte 文件，将英文界面文本替换为中文。
+# Workflow: 全量翻译（一次性手动触发）
+# 功能: 翻译 src/ 下所有 .svelte 文件的英文界面文本为中文
+# 引擎: OpenAI 兼容接口（可接任意兴趣服务）
 #
-# 使用场景：
-#   - 首次建立 zh-CN 分支后进行初始化翻译
-#   - 需要重新全量翻译时手动触发
-#
-# 前置条件：
-#   在仓库 Settings → Secrets → Actions 中添加：
-#   DEEPL_API_KEY = 你的 DeepL Free API Key
-#     申请地址：https://www.deepl.com/pro-api （免费版）
-#
-# 注意事项：
-#   - DeepL Free 每月限额 50 万字符，全量翻译约消耗 1-5 万字符
-#   - 只翻译 HTML 模板部分的可见文本，不改动 JS/TS 逻辑代码
-#   - 已是中文的内容不会重复发送给 API
-#   - 翻译结果直接 commit 到 zh-CN 分支并触发 Docker 构建
+# 需要在仓库 Settings → Secrets → Actions 中添加：
+#   AI_API_KEY   = 你的 API Key
+#   AI_BASE_URL  = API 基础地址（不含 /v1）
+#   AI_MODEL     = 模型名称
 # ============================================================
 
 name: 全量翻译（手动触发）
@@ -26,13 +15,11 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: '试运行（只打印要翻译的内容，不实际修改文件）'
+        description: '试运行（仅打印计划翻译的内容，不修改文件）'
         required: false
         default: 'false'
         type: choice
-        options:
-          - 'false'
-          - 'true'
+        options: ['false', 'true']
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -43,11 +30,7 @@ permissions:
 jobs:
   translate:
     runs-on: ubuntu-latest
-
     steps:
-      # -------------------------------------------------------
-      # 步骤 1：检出 zh-CN 分支代码
-      # -------------------------------------------------------
       - name: 检出 zh-CN 分支
         uses: actions/checkout@v5
         with:
@@ -55,52 +38,41 @@ jobs:
           fetch-depth: 1
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # -------------------------------------------------------
-      # 步骤 2：安装 Python 依赖
-      # -------------------------------------------------------
       - name: 安装 Python 依赖
-        run: pip install deepl requests
+        run: pip install openai
 
-      # -------------------------------------------------------
-      # 步骤 3：执行全量翻译脚本
-      # -------------------------------------------------------
       - name: 执行全量翻译
         env:
-          DEEPL_API_KEY: ${{ secrets.DEEPL_API_KEY }}
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
           DRY_RUN: ${{ github.event.inputs.dry_run }}
         run: |
           cat << 'PYEOF' > /tmp/translate_full.py
-          import os, re, sys, deepl
+          import os, re, sys, json
+          from openai import OpenAI
 
-          api_key = os.environ.get('DEEPL_API_KEY', '')
-          dry_run = os.environ.get('DRY_RUN', 'false').lower() == 'true'
+          api_key  = os.environ['AI_API_KEY']
+          base_url = os.environ['AI_BASE_URL'].rstrip('/') + '/v1'
+          model    = os.environ['AI_MODEL']
+          dry_run  = os.environ.get('DRY_RUN', 'false').lower() == 'true'
 
-          if not api_key:
-              print('❌ 错误：未找到 DEEPL_API_KEY，请在仓库 Secrets 中添加')
-              sys.exit(1)
+          client = OpenAI(api_key=api_key, base_url=base_url)
 
-          translator = deepl.Translator(api_key)
+          SYSTEM_PROMPT = """你是一个专业的 Docker 管理面板汉化专家。
+          任务：将 Svelte 组件模板中的英文界面文本翻译成中文。
+          规则：
+          1. 只翻译可见的 UI 文本（按钮、标签、标题、提示语等）
+          2. 保留所有 HTML 标签、Svelte 语法（{#if} {#each} {@render} 等）、变量插值 {variable} 原封不动
+          3. 技术术语参考：Container→容器、Stack→应用栈、Volume→数据卷、Network→网络、Image→镜像、Registry→镜像仓库、Dashboard→仪表盘、Environment→环境、Schedule→定时任务、Audit→审计、Terminal→终端
+          4. 直接返回翻译后的完整文件内容，不要加任何解释或代码块标记"""
 
-          # 检查 API 用量
-          usage = translator.get_usage()
-          print(f'📊 DeepL 用量：{usage.character.count:,} / {usage.character.limit:,} 字符')
+          # 跳过已手动翻译的文件
+          SKIP_FILES = {'src/routes/+layout.svelte'}
 
-          # 匹配 Svelte 模板中的英文文本
-          # 规则：在 HTML 标签之间、或属性值中出现的英文文本
-          # 排除：代码块、注释、已有中文的内容、纯标点/数字
-          ENGLISH_PATTERN = re.compile(
-              r'(?<![{\[])([A-Z][a-z]{2,}(?:[\s]+[a-zA-Z]{2,}){0,8})(?![}\]])'
-          )
-
-          # 需要跳过的文件（已手动翻译或无需翻译）
-          SKIP_FILES = {
-              'src/routes/+layout.svelte',  # 已手动翻译
-          }
-
-          # 收集所有 .svelte 文件
+          # 收集所有需要翻译的 .svelte 文件
           svelte_files = []
           for root, dirs, files in os.walk('src'):
-              # 跳过 lib/components/ui 目录（shadcn 组件，不需要翻译）
               dirs[:] = [d for d in dirs if d not in ['node_modules', '.svelte-kit']]
               if 'components/ui' in root:
                   continue
@@ -110,105 +82,66 @@ jobs:
                       if path not in SKIP_FILES:
                           svelte_files.append(path)
 
-          print(f'\n📁 找到 {len(svelte_files)} 个 .svelte 文件')
+          print(f'找到 {len(svelte_files)} 个 .svelte 文件')
 
-          total_translated = 0
-          total_chars = 0
+          # 快速检查文件是否含英文文本（避免翻译纯逻辑文件）
+          EN_TEXT_RE = re.compile(r'>\s*[A-Z][a-zA-Z\s]{3,}[a-zA-Z]\s*[<{]')
 
+          translated_count = 0
           for filepath in sorted(svelte_files):
-              with open(filepath, 'r', encoding='utf-8') as f:
+              with open(filepath, encoding='utf-8') as f:
                   content = f.read()
 
-              # 提取 <script> 标签之外的模板部分
-              # 分离 script 和 template
-              script_pattern = re.compile(r'<script[^>]*>.*?</script>', re.DOTALL)
-              scripts = script_pattern.findall(content)
-              template = script_pattern.sub('__SCRIPT_PLACEHOLDER__', content)
-
-              # 找出模板中的英文文本节点（标签之间的文字）
-              text_pattern = re.compile(
-                  r'(>\s*)([A-Z][a-zA-Z\s]{3,}[a-zA-Z])(\s*[<{])',
-              )
-
-              matches = text_pattern.findall(template)
-              english_texts = list(set([
-                  m[1].strip() for m in matches
-                  if not re.search(r'[\u4e00-\u9fff]', m[1])  # 排除已有中文
-                  and len(m[1].strip()) > 3
-                  and not m[1].strip().startswith('{')
-              ]))
-
-              if not english_texts:
+              # 没有英文 UI 文本则跳过
+              if not EN_TEXT_RE.search(content):
+                  print(f'  ✓ 跳过（无英文文本）: {filepath}')
                   continue
 
-              print(f'\n  📄 {filepath} ({len(english_texts)} 处文本)')
+              print(f'  → 翻译: {filepath}')
               if dry_run:
-                  for t in english_texts[:5]:
-                      print(f'     - "{t}"')
-                  if len(english_texts) > 5:
-                      print(f'     ... 还有 {len(english_texts)-5} 处')
                   continue
 
-              # 批量翻译，减少 API 调用次数
               try:
-                  char_count = sum(len(t) for t in english_texts)
-                  total_chars += char_count
-                  results = translator.translate_text(
-                      english_texts,
-                      source_lang='EN',
-                      target_lang='ZH',
+                  resp = client.chat.completions.create(
+                      model=model,
+                      messages=[
+                          {'role': 'system', 'content': SYSTEM_PROMPT},
+                          {'role': 'user', 'content': f'请翻译以下 Svelte 文件：\n\n{content}'}
+                      ],
+                      temperature=0.1,
                   )
-                  translation_map = {
-                      english_texts[i]: results[i].text
-                      for i in range(len(english_texts))
-                  }
+                  translated = resp.choices[0].message.content.strip()
 
-                  # 替换模板中的英文文本
-                  new_template = template
-                  for en, zh in translation_map.items():
-                      if en != zh:  # 避免替换没有变化的文本
-                          new_template = new_template.replace(
-                              f'>{en}<', f'>{zh}<'
-                          ).replace(
-                              f'>{en} ', f'>{zh} '
-                          ).replace(
-                              f' {en}<', f' {zh}<'
-                          )
-                          print(f'     ✅ "{en}" → "{zh}"')
-                          total_translated += 1
+                  # 去掉模型可能加的 markdown 代码块
+                  translated = re.sub(r'^```[\w]*\n?', '', translated)
+                  translated = re.sub(r'\n?```$', '', translated)
 
-                  # 还原 script 标签
-                  for script in scripts:
-                      new_template = new_template.replace(
-                          '__SCRIPT_PLACEHOLDER__', script, 1
-                      )
-
-                  if new_template != content:
+                  if translated and translated != content:
                       with open(filepath, 'w', encoding='utf-8') as f:
-                          f.write(new_template)
+                          f.write(translated)
+                      translated_count += 1
+                      print(f'     ✅ 已翻译')
+                  else:
+                      print(f'     ⚠️  内容未变化，跳过')
 
               except Exception as e:
-                  print(f'     ⚠️  翻译失败：{e}')
+                  print(f'     ❌ 翻译失败: {e}')
 
-          print(f'\n✅ 翻译完成！')
-          print(f'   共翻译 {total_translated} 处文本，消耗约 {total_chars:,} 字符')
+          print(f'\n全量翻译完成，共翻译 {translated_count} 个文件')
           PYEOF
           python3 /tmp/translate_full.py
 
-      # -------------------------------------------------------
-      # 步骤 4：提交翻译结果
-      # -------------------------------------------------------
       - name: 提交翻译结果
         if: github.event.inputs.dry_run == 'false'
         run: |
           git config user.email "actions@github.com"
-          git config user.name "GitHub Actions [DeepL]"
+          git config user.name "GitHub Actions [AI 翻译]"
           git add -A
           if git diff --cached --quiet; then
-            echo "ℹ️  没有文件变更，无需提交"
+            echo "没有文件变更，无需提交"
           else
-            CHANGED=$(git diff --cached --name-only | wc -l)
-            git commit -m "i18n: DeepL 全量翻译 ${CHANGED} 个文件 [自动]"
+            COUNT=$(git diff --cached --name-only | wc -l)
+            git commit -m "i18n: AI 全量汉化 ${COUNT} 个文件 [自动]"
             git push origin zh-CN
-            echo "✅ 已提交并推送翻译结果"
+            echo "✅ 已提交并推送"
           fi
