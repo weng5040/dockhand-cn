@@ -76,3 +76,4 @@ This repository and its contents are explicitly prohibited from use in any AI, L
 For details, see license file.
 
 © 2025-2026 Finsys / Jarek Krochmalski
+CoolMeWeng
