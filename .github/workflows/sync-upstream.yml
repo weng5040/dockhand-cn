@@ -19,26 +19,18 @@
 name: 同步上游仓库（Finsys/dockhand） > main
 
 on:
-  # 每 4 小时运行一次（UTC 时间：0、4、8、12、16、20 点）
   schedule:
     - cron: '0 */4 * * *'
-  # 允许在 GitHub Actions 页面手动点击触发
   workflow_dispatch:
 
-# 全局权限配置
 permissions:
-  contents: write  # 允许推送代码到仓库
-  issues: write    # 允许在失败时自动创建 Issue
+  contents: write
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      # -------------------------------------------------------
-      # 步骤 1：检出本仓库的 main 分支
-      # fetch-depth: 0 表示获取完整历史，确保 reset 操作正常
-      # -------------------------------------------------------
       - name: 检出 main 分支
         uses: actions/checkout@v5
         with:
@@ -46,21 +38,11 @@ jobs:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # -------------------------------------------------------
-      # 步骤 2：配置 Git 用户信息
-      # 用于后续 commit 操作的署名
-      # -------------------------------------------------------
       - name: 配置 Git 用户信息
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
 
-      # -------------------------------------------------------
-      # 步骤 3：通过 GitHub API 获取上游最新 Release 信息
-      # 输出变量：
-      #   steps.upstream.outputs.tag       → Release 的 tag 名称（如 v1.2.3）
-      #   steps.upstream.outputs.published → Release 的发布时间
-      # -------------------------------------------------------
       - name: 获取上游最新 Release 信息
         id: upstream
         run: |
@@ -72,11 +54,6 @@ jobs:
           echo "published=$PUBLISHED_AT" >> $GITHUB_OUTPUT
           echo "🌐 上游最新 Release：$TAG_NAME（发布于 $PUBLISHED_AT）"
 
-      # -------------------------------------------------------
-      # 步骤 4：读取本地记录的上次同步版本
-      # 文件路径：.github/LAST_SYNCED_RELEASE
-      # 若文件不存在（首次运行），则默认值为 "none"
-      # -------------------------------------------------------
       - name: 读取上次同步的 Release 版本
         id: local
         run: |
@@ -88,10 +65,6 @@ jobs:
           echo "tag=$LAST_TAG" >> $GITHUB_OUTPUT
           echo "📦 上次同步版本：$LAST_TAG"
 
-      # -------------------------------------------------------
-      # 步骤 5：比较版本号，判断是否需要执行同步
-      # 若上游版本与本地记录不一致，则标记 sync=true
-      # -------------------------------------------------------
       - name: 判断是否需要同步
         id: decide
         run: |
@@ -103,126 +76,74 @@ jobs:
             echo "✅ 已是最新版本，无需同步。"
           fi
 
-      # -------------------------------------------------------
-      # 步骤 6：执行同步（仅当检测到新 Release 时才运行）
-      # 操作流程：
-      #   1. 添加上游仓库为 remote
-      #   2. fetch 上游最新代码
-      #   3. 强制将 main 重置为上游 main（覆盖本地 main）
-      #   4. reset 完成后，写入版本记录和所需的 workflow 文件
-      #   5. 提交并强制推送到 origin main
-      # -------------------------------------------------------
       - name: 同步上游代码到 main 分支
         if: steps.decide.outputs.sync == 'true'
         run: |
-          # 添加上游仓库地址
           git remote add upstream https://github.com/Finsys/dockhand.git
-
-          # 拉取上游所有分支和 tag
           git fetch upstream
-
-          # 强制将本地 main 重置为上游 main
           git reset --hard upstream/main
-
-          # 在 reset 之后写入版本记录，确保不被覆盖
           mkdir -p .github/workflows
           echo "${{ steps.upstream.outputs.tag }}" > .github/LAST_SYNCED_RELEASE
 
-          # 写回 merge-to-zh-cn.yml，防止被上游覆盖导致失效
-          # 该文件必须存在于 main 分支，才能监听 main 的 push 事件
-          cat > .github/workflows/merge-to-zh-cn.yml << 'EOF'
-          name: Merge main into zh-CN
+          # 用 base64 写入 merge-to-zh-cn.yml，避免 token 被 Actions 展开后泄漏到文件内容
+          python3 -c "
+import base64
+content = '''name: main > zh-CN
 
-          on:
-            push:
-              branches: [main]
-            workflow_dispatch:
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
-          permissions:
-            contents: write
-            issues: write
+permissions:
+  contents: write
 
-          jobs:
-            merge:
-              runs-on: ubuntu-latest
+jobs:
+  merge:
+    runs-on: ubuntu-latest
 
-              steps:
-                - name: 检出 zh-CN 分支
-                  uses: actions/checkout@v5
-                  with:
-                    fetch-depth: 0
-                    ref: zh-CN
-                    token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: \u68c0\u51fa zh-CN \u5206\u652f
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: zh-CN
+          token: \${{ secrets.GITHUB_TOKEN }}
 
-                - name: 配置 Git 用户信息
-                  run: |
-                    git config user.email "actions@github.com"
-                    git config user.name "GitHub Actions"
+      - name: \u914d\u7f6e Git \u7528\u6237\u4fe1\u606f
+        run: |
+          git config user.email \"actions@github.com\"
+          git config user.name \"GitHub Actions\"
 
-                - name: 将 main 最新内容合并到 zh-CN
-                  run: |
-                    git fetch origin main
-                    git merge origin/main --no-edit --strategy-option=theirs || true
+      - name: \u5c06 main \u6700\u65b0\u5185\u5bb9\u5408\u5e76\u5230 zh-CN
+        run: |
+          git fetch origin main
+          git merge origin/main --no-edit --strategy-option=theirs || true
 
-                - name: 保护 .github 目录不被覆盖
-                  run: |
-                    git checkout HEAD -- .github/
+      - name: \u4fdd\u62a4 .github \u76ee\u5f55\u4e0d\u88ab\u8986\u76d6
+        run: |
+          git checkout HEAD -- .github/
 
-                - name: 推送更新到 zh-CN 分支
-                  run: |
-                    git push origin zh-CN
+      - name: \u63a8\u9001\u66f4\u65b0\u5230 zh-CN \u5206\u652f
+        run: |
+          git push origin zh-CN
 
-                - name: 合并失败时创建 Issue 通知
-                  if: failure()
-                  uses: actions/github-script@v7
-                  with:
-                    script: |
-                      await github.rest.issues.create({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        title: "\u26a0\ufe0f zh-CN \u5206\u652f\u5408\u5e76\u5931\u8d25\uff0c\u9700\u8981\u624b\u52a8\u5904\u7406",
-                        body:
-                          "\u81ea\u52a8\u5c06 main \u5408\u5e76\u5230 zh-CN \u65f6\u53d1\u751f\u9519\u8bef\u3002\n\n" +
-                          "\ud83d\udc49 \u67e5\u770b\u8be6\u7ec6\u65e5\u5fd7\uff1a" +
-                          context.serverUrl + "/" +
-                          context.repo.owner + "/" +
-                          context.repo.repo +
-                          "/actions/runs/" + context.runId
-                      });
-          EOF
+      - name: \u5408\u5e76\u5931\u8d25\u65f6\u8f93\u51fa\u9519\u8bef\u4fe1\u606f
+        if: failure()
+        run: |
+          echo \"::error title=zh-CN merge failed::zh-CN \u5206\u652f\u5408\u5e76\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5 Actions \u65e5\u5fd7\"
+          exit 1
+'''
+open('.github/workflows/merge-to-zh-cn.yml', 'w').write(content)
+"
 
-          # 提交两个文件
           git add .github/LAST_SYNCED_RELEASE .github/workflows/merge-to-zh-cn.yml
           git commit -m "chore: sync upstream release ${{ steps.upstream.outputs.tag }}" || true
-
-          # 强制推送到本仓库的 main 分支
           git push origin main --force
-
           echo "✅ 同步完成：${{ steps.upstream.outputs.tag }}"
 
-      # -------------------------------------------------------
-      # 步骤 7：同步失败时自动创建 Issue 通知
-      # 仅在前面任意步骤失败时触发
-      # -------------------------------------------------------
-      - name: 同步失败时创建 Issue 通知
+      - name: 同步失败时输出错误信息
         if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: "🚨 Upstream 同步失败",
-              body:
-                "GitHub Actions 在执行 upstream 同步时发生错误。\n\n" +
-                "👉 请检查以下可能原因：\n" +
-                "- upstream 仓库（Finsys/dockhand）是否可正常访问\n" +
-                "- GITHUB_TOKEN 权限是否包含 contents: write\n" +
-                "- GitHub API 是否触发限流（rate limit）\n" +
-                "- 网络连接是否正常\n\n" +
-                "📋 查看详细日志：" +
-                context.serverUrl + "/" +
-                context.repo.owner + "/" +
-                context.repo.repo +
-                "/actions/runs/" + context.runId
-            });
+        run: |
+          echo "::error title=Upstream 同步失败::请检查 Actions 日志，可能原因：upstream 不可访问 / GITHUB_TOKEN 权限不足 / API 限流"
+          exit 1
